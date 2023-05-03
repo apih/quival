@@ -1,0 +1,27 @@
+{
+  "name": "quival",
+  "version": "0.1.0",
+  "description": "Data validation à la Laravel Validation",
+  "author": "Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.js",
+  "keywords": [
+    "data validation",
+    "form",
+    "front end",
+    "laravel",
+    "quick",
+    "validation",
+    "validator"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apih/quival"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "prettier": "^2.8.8"
+  },
+  "scripts": {}
+}
