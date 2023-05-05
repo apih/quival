@@ -1,6 +1,18 @@
 export default class ErrorBag {
   #data = {};
 
+  keys() {
+    return Object.keys(this.#data);
+  }
+
+  values() {
+    return Object.values(this.#data);
+  }
+
+  entries() {
+    return Object.entries(this.#data);
+  }
+
   add(key, message) {
     if (this.#data.hasOwnProperty(key)) {
       this.#data[key].push(message);
@@ -17,7 +29,7 @@ export default class ErrorBag {
     const pattern = new RegExp('^' + key.replaceAll('*', '.*?') + '$');
     const result = {};
 
-    for (const [key, value] of Object.entries(this.#data)) {
+    for (const [key, value] of this.entries()) {
       if (pattern.test(key)) {
         result[key] = value;
       }
@@ -45,7 +57,7 @@ export default class ErrorBag {
   all() {
     const result = [];
 
-    Object.values(this.#data).forEach((messages) => result.push(...messages));
+    this.values().forEach((messages) => result.push(...messages));
 
     return result;
   }
@@ -53,13 +65,13 @@ export default class ErrorBag {
   count() {
     let count = 0;
 
-    Object.values(this.#data).forEach((messages) => (count += messages.length));
+    this.values().forEach((messages) => (count += messages.length));
 
     return count;
   }
 
   isEmpty() {
-    return Object.keys(this.#data).length === 0;
+    return this.keys().length === 0;
   }
 
   isNotEmpty() {

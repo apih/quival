@@ -231,12 +231,13 @@ export default class Validator {
     for (const [attribute, rules] of Object.entries(this.#rules)) {
       let value = this.getValue(attribute);
 
-      const doBail = this.#alwaysBail || rules.hasOwnProperty('bail');
-      const isNullable = rules.hasOwnProperty('nullable');
-
       if (rules.hasOwnProperty('sometimes') && typeof value === 'undefined') {
         continue;
       }
+
+      const doBail = this.#alwaysBail || rules.hasOwnProperty('bail');
+      const isNullable = rules.hasOwnProperty('nullable');
+      let hasError = false;
 
       for (const [rule, parameters] of Object.entries(rules)) {
         if (
@@ -264,6 +265,7 @@ export default class Validator {
         }
 
         if (!status) {
+          hasError = true;
           message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
           message = this.makeReplacements(message, attribute, rule, parameters);
 
@@ -275,16 +277,32 @@ export default class Validator {
         }
       }
 
-      if (this.#stopOnFirstFailure && this.#errors.isNotEmpty()) {
+      if (this.#stopOnFirstFailure && hasError) {
         break;
       }
     }
 
-    const messages = this.#errors.messages();
-
-    if (Object.keys(messages).length > 0) {
-      throw messages;
+    if (this.#errors.isNotEmpty()) {
+      throw this.#errors;
     }
+  }
+
+  async passes() {
+    try {
+      await this.validate();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      return false;
+    }
+
+    return true;
+  }
+
+  async fails() {
+    return !(await this.passes());
   }
 
   getMessage(attribute, rule) {
@@ -408,7 +426,7 @@ export default class Validator {
   getRule(attribute) {
     attribute = this.getPrimaryAttribute(attribute);
 
-    return this.#rules[attribute];
+    return this.#rules[attribute] ?? {};
   }
 
   hasRule(attribute, rules) {

@@ -55,7 +55,7 @@ export function flattenObject(obj, prefix = '') {
 }
 
 export function parseDate(value) {
-  if (isEmpty(value)) {
+  if (isEmpty(value) || typeof value !== 'string') {
     return new Date('');
   } else if (value instanceof Date) {
     return value;

@@ -389,15 +389,15 @@ export default class Checkers {
   }
 
   checkMinDigits(attribute, value, parameters) {
-    return this.checkDigits(value, parameters, (length, value) => length >= value);
+    return this.checkDigits(attribute, value, parameters, (length, value) => length >= value);
   }
 
   checkMaxDigits(attribute, value, parameters) {
-    return this.checkDigits(value, parameters, (length, value) => length <= value);
+    return this.checkDigits(attribute, value, parameters, (length, value) => length <= value);
   }
 
   checkDigitsBetween(attribute, value, parameters) {
-    return this.checkDigits(value, parameters, (length, value1, value2) => length >= value1 && length <= value2);
+    return this.checkDigits(attribute, value, parameters, (length, value1, value2) => length >= value1 && length <= value2);
   }
 
   // String

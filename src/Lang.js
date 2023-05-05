@@ -1,8 +1,8 @@
 import { flattenObject, isPlainObject } from './helpers.js';
 
 export default class Lang {
-  static #locale;
-  static #messages = {};
+  static #locale = 'en';
+  static #messages = { en: {} };
 
   static locale(locale) {
     this.#locale = locale;
@@ -13,7 +13,7 @@ export default class Lang {
   }
 
   static get(path) {
-    return this.#messages[this.#locale][path];
+    return this.#messages[this.#locale][path] ?? '';
   }
 
   static has(path) {
