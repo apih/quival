@@ -106,6 +106,8 @@ export default class Validator {
     for (const [rule, replacer] of Object.entries(Validator.#customReplacers)) {
       this.#replacers[toCamelCase('replace_' + rule)] = replacer;
     }
+
+    this.#errors = new ErrorBag();
   }
 
   setProperties(data = {}, rules = {}, messages = {}, attributes = {}, values = {}) {

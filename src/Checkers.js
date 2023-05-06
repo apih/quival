@@ -675,7 +675,7 @@ export default class Checkers {
   async checkImage(attribute, value, parameters) {
     let result = this.checkMimes(attribute, value, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp']);
 
-    if (!result || !FileReader) {
+    if (!result || typeof FileReader === 'undefined') {
       return result;
     }
 
