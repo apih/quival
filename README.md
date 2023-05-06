@@ -60,7 +60,7 @@ const rules = {
   username: ['required', 'ascii', 'min:3'],
   name: ['required', 'min:3'],
   email: ['required', 'email'],
-  phone_number: ['required', 'phone_number'],
+  phone_number: ['required', 'phone_number', 'min:7'],
   'letters.*': ['distinct:ignore_case'],
   items: ['array', 'size:5'],
   'items.*': ['required', 'string'],
@@ -91,12 +91,12 @@ validator
   .then(() => {
     console.log('Successful!');
   })
-  .catch((messages) => {
-    if (messages instanceof Error) {
-      throw messages;
+  .catch((errorBag) => {
+    if (errorBag instanceof Error) {
+      throw errorBag;
     }
 
-    console.log(messages);
+    console.log(errorBag.messages());
   });
 ```
 
@@ -114,7 +114,8 @@ The produced error messages for the code snippet above.
     "The email field must be a valid email address."
   ],
   "phone_number": [
-    "The phone number field must be a valid phone number."
+    "The phone number field must be a valid phone number.",
+    "The phone number field must be at least 7 characters."
   ],
   "letters.0": [
     "The letters.0 field has a duplicate value."
