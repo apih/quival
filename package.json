@@ -21,7 +21,10 @@
   },
   "devDependencies": {
     "eslint": "^8.39.0",
+    "mocha": "^10.2.0",
     "prettier": "^2.8.8"
   },
-  "scripts": {}
+  "scripts": {
+    "test": "mocha"
+  }
 }
