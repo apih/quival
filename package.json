@@ -20,11 +20,20 @@
     "url": "https://github.com/apih/quival"
   },
   "devDependencies": {
+    "@babel/core": "^7.21.8",
+    "@babel/preset-env": "^7.21.5",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-terser": "^0.4.1",
     "eslint": "^8.39.0",
     "mocha": "^10.2.0",
-    "prettier": "^2.8.8"
+    "prettier": "^2.8.8",
+    "rollup": "^3.21.5"
   },
   "scripts": {
-    "test": "mocha"
+    "build": "rollup --config",
+    "test": "mocha",
+    "preversion": "npm run test",
+    "version": "npm run build && git add package.json package-lock.json dist"
   }
 }
