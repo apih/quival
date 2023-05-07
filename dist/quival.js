@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.3 (https://github.com/apih/quival)
+ * quival v0.2.4 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -1831,6 +1831,9 @@ var quival = (function (exports) {
     }, {
       key: "checkIpv4",
       value: function checkIpv4(attribute, value, parameters) {
+        if (/[^\d.]/.test(value)) {
+          return false;
+        }
         var blocks = String(value).split('.');
         if (blocks.length !== 4) {
           return false;
@@ -1840,7 +1843,7 @@ var quival = (function (exports) {
         try {
           for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
             var block = _step11.value;
-            if (!(block >= 0 && block <= 255)) {
+            if (block < 0 || block > 255) {
               return false;
             }
           }
@@ -1855,19 +1858,19 @@ var quival = (function (exports) {
       key: "checkIpv6",
       value: function checkIpv6(attribute, value, parameters) {
         value = String(value);
-        var blocks = ((value.startsWith('::') ? '0' : '') + value).split(':');
+        if (value.split('::').length > 2) {
+          return false;
+        }
+        var blocks = value.split(':');
         if (blocks.length < 3 || blocks.length > 8) {
           return false;
         }
-        var zeroBlocksCounter = 0;
         var _iterator12 = _createForOfIteratorHelper(blocks),
           _step12;
         try {
           for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
             var block = _step12.value;
-            if (block === '') {
-              zeroBlocksCounter++;
-            } else if (!/^[0-9a-f]{1,4}$/i.test(block)) {
+            if (block !== '' && !/^[0-9a-f]{1,4}$/i.test(block)) {
               return false;
             }
           }
@@ -1875,9 +1878,6 @@ var quival = (function (exports) {
           _iterator12.e(err);
         } finally {
           _iterator12.f();
-        }
-        if (zeroBlocksCounter > 1) {
-          return false;
         }
         return true;
       }
