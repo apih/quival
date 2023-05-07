@@ -799,6 +799,10 @@ export default class Checkers {
   }
 
   checkIpv4(attribute, value, parameters) {
+    if (/[^\d.]/.test(value)) {
+      return false;
+    }
+
     const blocks = String(value).split('.');
 
     if (blocks.length !== 4) {
@@ -806,7 +810,7 @@ export default class Checkers {
     }
 
     for (const block of blocks) {
-      if (!(block >= 0 && block <= 255)) {
+      if (block < 0 || block > 255) {
         return false;
       }
     }
@@ -817,24 +821,20 @@ export default class Checkers {
   checkIpv6(attribute, value, parameters) {
     value = String(value);
 
-    const blocks = ((value.startsWith('::') ? '0' : '') + value).split(':');
+    if (value.split('::').length > 2) {
+      return false;
+    }
+
+    const blocks = value.split(':');
 
     if (blocks.length < 3 || blocks.length > 8) {
       return false;
     }
 
-    let zeroBlocksCounter = 0;
-
     for (const block of blocks) {
-      if (block === '') {
-        zeroBlocksCounter++;
-      } else if (!/^[0-9a-f]{1,4}$/i.test(block)) {
+      if (block !== '' && !/^[0-9a-f]{1,4}$/i.test(block)) {
         return false;
       }
-    }
-
-    if (zeroBlocksCounter > 1) {
-      return false;
     }
 
     return true;
