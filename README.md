@@ -12,18 +12,56 @@ Why is there a need to perform validation on the front end? Early data validatio
 
 This library is intended to be used in the browser environment, and it was not tested in other enviroments such as Node.
 
-## Installation
-
-```bash
-npm install quival
-```
-
 ## Features
 
 - Provide similar conventions to Laravel Validation
 - Implement most of the rules listed [here](https://laravel.com/docs/10.x/validation#available-validation-rules)
 
-## Example
+## Installation
+
+There are 2 ways to start using `quival` in your project.
+- Use CDN link
+- Import as a module
+
+### Use CDN link
+
+Get the script from [jsDelivr CDN](https://cdn.jsdelivr.net/npm/quival@latest/) and include it in your HTML page.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/quival@0.2.x/dist/quival.min.js"></script>
+```
+
+Extract `Validator` class from  `quival` global variable, and you are good to go.
+
+```js
+const { Validator } = quival;
+
+const validator = new Validator({ /* data */ }, { /* rules */ });
+```
+
+### Import as a module
+
+Install the package first via NPM.
+
+```bash
+npm install quival
+```
+
+Import `Validator` class into your bundle, and you are good to go.
+
+```js
+import { Validator } from 'quival';
+
+const validator = new Validator({ /* data */ }, { /* rules */ });
+```
+
+## JSFiddle Examples
+
+- [Link dist version from CDN](https://jsfiddle.net/apih/dfn6yzw0)
+- [Import src version from CDN](https://jsfiddle.net/apih/b1643pgm)
+- [Form validation demo](https://jsfiddle.net/apih/6ya3wnhg)
+
+## Usage Example
 
 The code snippet below demonstrates the usage of `Validator` class.
 
@@ -36,9 +74,11 @@ Validator.setLocale('en');
 Validator.setMessages('en', enLocale);
 
 // Register custom checker
-Validator.addChecker('phone_number', (attribute, value, parameters) => {
-  return !/[^0-9\+\-\s]/.test(value);
-}, 'The :attribute field must be a valid phone number.');
+Validator.addChecker(
+  'phone_number',
+  (attribute, value, parameters) => !/[^0-9\+\-\s]/.test(value),
+  'The :attribute field must be a valid phone number.'
+);
 
 // Prepare arguments
 const data = {
@@ -143,6 +183,22 @@ The produced error messages for the code snippet above.
   ]
 }
 ```
+
+## Unimplemented / Dummy Rules
+
+The following rules are not implemented and will always pass the validation if used.
+
+- `active_url`
+- `current_password`
+- `exclude`
+- `exclude_if`
+- `exclude_unless`
+- `exclude_with`
+- `exclude_without`
+- `exists`
+- `unique`
+
+You can implement custom rules to override the dummy rules, by using `Validator.addChecker()`.
 
 ## Security Vulnerabilities
 
