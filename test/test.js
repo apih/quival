@@ -1141,15 +1141,16 @@ describe('Validation', () => {
     it(`Passes when the field is a valid IP address`, async () => {
       const validator = new Validator({ field: '127.0.0.1' }, rules);
       assert(await validator.passes());
+
+      validator.setData({ field: '2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF' });
+      assert(await validator.passes());
     });
 
     it(`Fails when the field is an invalid IP address`, async () => {
       const validator = new Validator({ field: '127.x.x.1' }, rules);
       assert(await validator.fails());
-    });
 
-    it(`Fails when the field is a regular string`, async () => {
-      const validator = new Validator({ field: 'abc' }, rules);
+      validator.setData({ field: '2001:db8:3333:x:x:DDDD:EEEE:FFFF' });
       assert(await validator.fails());
     });
   });
@@ -1162,13 +1163,17 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Fails when the field is a regular string`, async () => {
-      const validator = new Validator({ field: 'abc' }, rules);
+    it(`Fails when the field is an invalid IPv4 address`, async () => {
+      const validator = new Validator({ field: '11.22.33' }, rules);
       assert(await validator.fails());
-    });
 
-    it(`Fails when the field is a valid IPv6 address`, async () => {
-      const validator = new Validator({ field: '2001:0db8:0000:0000:0000:ff00:0042:8329' }, rules);
+      validator.setData({ field: '256.23.33' });
+      assert(await validator.fails());
+
+      validator.setData({ field: 'abc' });
+      assert(await validator.fails());
+
+      validator.setData({ field: '2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF' });
       assert(await validator.fails());
     });
   });
@@ -1176,28 +1181,31 @@ describe('Validation', () => {
   describe(`Rule 'ipv6'`, () => {
     const rules = { field: 'ipv6' };
 
-    it(`Passes when the field is a normal IPv6 address`, async () => {
+    it(`Passes when the field is a valid IPv6 address`, async () => {
       const validator = new Validator({ field: '2001:0db8:0000:0000:0000:ff00:0042:8329' }, rules);
       assert(await validator.passes());
-    });
 
-    it(`Passes when the field is a compressed IPv6 address`, async () => {
-      const validator = new Validator({ field: '2001:db8::ff00:42:8329' }, rules);
+      validator.setData({ field: '2001:db8::ff00:42:8329' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '::1' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '4::' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '::' });
       assert(await validator.passes());
     });
 
-    it(`Passes when the field is a loopback IPv6 address`, async () => {
-      const validator = new Validator({ field: '::1' }, rules);
-      assert(await validator.passes());
-    });
-
-    it(`Fails when the field is a valid IPv4 address`, async () => {
-      const validator = new Validator({ field: '127.0.0.1' }, rules);
+    it(`Fails when the field is an invalid IPv6 address`, async () => {
+      const validator = new Validator({ field: '196.168.0.1' }, rules);
       assert(await validator.fails());
-    });
 
-    it(`Fails when the field is a regular string`, async () => {
-      const validator = new Validator({ field: 'abc' }, rules);
+      validator.setData({ field: 'abc' });
+      assert(await validator.fails());
+
+      validator.setData({ field: '2001::3333:4444:CCCC:DDDD::EEEE:FFFF' });
       assert(await validator.fails());
     });
   });
@@ -1825,22 +1833,19 @@ describe('Validation', () => {
   });
 
   describe(`Rule 'multiple_of'`, () => {
-    it(`Passes when the field is multiple of 4`, async () => {
+    it(`Passes when the field is multiple of provided value`, async () => {
       const validator = new Validator({ field: 16 }, { field: 'multiple_of:4' });
       assert(await validator.passes());
-    });
 
-    it(`Passes when the field is multiple of 11`, async () => {
-      const validator = new Validator({ field: 66 }, { field: 'multiple_of:11' });
+      validator.setProperties({ field: 66 }, { field: 'multiple_of:11' });
       assert(await validator.passes());
     });
 
-    it(`Fails when the field is not multiple of 4`, async () => {
+    it(`Fails when the field is not multiple of provided value`, async () => {
       const validator = new Validator({ field: 21 }, { field: 'multiple_of:4' });
       assert(await validator.fails());
-    });
-    it(`Fails when the field is not multiple of 11`, async () => {
-      const validator = new Validator({ field: 58 }, { field: 'multiple_of:11' });
+
+      validator.setProperties({ field: 58 }, { field: 'multiple_of:11' });
       assert(await validator.fails());
     });
   });
@@ -2370,17 +2375,17 @@ describe('Validation', () => {
   describe(`Rule 'starts_with'`, () => {
     const rules = { field: 'starts_with:foo,bar' };
 
-    it(`Passes when the field ends with the first values`, async () => {
+    it(`Passes when the field starts with the first values`, async () => {
       const validator = new Validator({ field: 'fooyes' }, rules);
       assert(await validator.passes());
     });
 
-    it(`Passes when the field ends with the second values`, async () => {
+    it(`Passes when the field starts with the second values`, async () => {
       const validator = new Validator({ field: 'baryes' }, rules);
       assert(await validator.passes());
     });
 
-    it(`Fails when the field does not end with any value`, async () => {
+    it(`Fails when the field does not start with any value`, async () => {
       const validator = new Validator({ field: 'yes' }, rules);
       assert(await validator.fails());
     });
