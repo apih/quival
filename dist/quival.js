@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.4 (https://github.com/apih/quival)
+ * quival v0.2.5 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -1858,7 +1858,7 @@ var quival = (function (exports) {
       key: "checkIpv6",
       value: function checkIpv6(attribute, value, parameters) {
         value = String(value);
-        if (value.split('::').length > 2) {
+        if (value.includes(':::') || value.split('::').length > 2) {
           return false;
         }
         var blocks = value.split(':');
@@ -2653,7 +2653,7 @@ var quival = (function (exports) {
                 _i4 = 0, _Object$entries4 = Object.entries(_classPrivateFieldGet(this, _rules));
               case 3:
                 if (!(_i4 < _Object$entries4.length)) {
-                  _context.next = 45;
+                  _context.next = 47;
                   break;
                 }
                 _Object$entries4$_i = _slicedToArray(_Object$entries4[_i4], 2), attribute = _Object$entries4$_i[0], rules = _Object$entries4$_i[1];
@@ -2662,7 +2662,7 @@ var quival = (function (exports) {
                   _context.next = 8;
                   break;
                 }
-                return _context.abrupt("continue", 42);
+                return _context.abrupt("continue", 44);
               case 8:
                 doBail = _classPrivateFieldGet(this, _alwaysBail) || rules.hasOwnProperty('bail');
                 isNullable = rules.hasOwnProperty('nullable');
@@ -2670,39 +2670,45 @@ var quival = (function (exports) {
                 _i5 = 0, _Object$entries5 = Object.entries(rules);
               case 12:
                 if (!(_i5 < _Object$entries5.length)) {
-                  _context.next = 40;
+                  _context.next = 42;
                   break;
                 }
                 _Object$entries5$_i = _slicedToArray(_Object$entries5[_i5], 2), rule = _Object$entries5$_i[0], parameters = _Object$entries5$_i[1];
-                if (!(!_classStaticPrivateFieldSpecGet(Validator, Validator, _implicitRules).includes(rule) && (typeof value == 'undefined' || typeof value === 'string' && value.trim() === '' || isNullable && value === null))) {
+                if (!(rule === '')) {
                   _context.next = 16;
                   break;
                 }
-                return _context.abrupt("break", 40);
+                return _context.abrupt("continue", 39);
               case 16:
+                if (!(!_classStaticPrivateFieldSpecGet(Validator, Validator, _implicitRules).includes(rule) && (typeof value === 'undefined' || typeof value === 'string' && value.trim() === '' || isNullable && value === null))) {
+                  _context.next = 18;
+                  break;
+                }
+                return _context.abrupt("continue", 39);
+              case 18:
                 result = void 0, status = void 0, message = void 0;
                 camelRule = toCamelCase('check_' + rule);
                 if (!(typeof _classPrivateFieldGet(this, _checkers)[camelRule] === 'function')) {
-                  _context.next = 24;
+                  _context.next = 26;
                   break;
                 }
-                _context.next = 21;
+                _context.next = 23;
                 return _classPrivateFieldGet(this, _checkers)[camelRule](attribute, value, parameters);
-              case 21:
+              case 23:
                 result = _context.sent;
-                _context.next = 29;
+                _context.next = 31;
                 break;
-              case 24:
+              case 26:
                 if (!_classStaticPrivateFieldSpecGet(Validator, Validator, _dummyRules).includes(rule)) {
-                  _context.next = 28;
+                  _context.next = 30;
                   break;
                 }
                 result = true;
-                _context.next = 29;
+                _context.next = 31;
                 break;
-              case 28:
+              case 30:
                 throw new Error("Invalid validation rule: ".concat(rule));
-              case 29:
+              case 31:
                 if (typeof result === 'boolean') {
                   status = result;
                 } else {
@@ -2711,7 +2717,7 @@ var quival = (function (exports) {
                   message = _result.message;
                 }
                 if (status) {
-                  _context.next = 37;
+                  _context.next = 39;
                   break;
                 }
                 hasError = true;
@@ -2719,31 +2725,31 @@ var quival = (function (exports) {
                 message = this.makeReplacements(message, attribute, rule, parameters);
                 _classPrivateFieldGet(this, _errors).add(attribute, message);
                 if (!(doBail || _classStaticPrivateFieldSpecGet(Validator, Validator, _implicitRules).includes(rule))) {
-                  _context.next = 37;
+                  _context.next = 39;
                   break;
                 }
-                return _context.abrupt("break", 40);
-              case 37:
+                return _context.abrupt("break", 42);
+              case 39:
                 _i5++;
                 _context.next = 12;
                 break;
-              case 40:
+              case 42:
                 if (!(_classPrivateFieldGet(this, _stopOnFirstFailure) && hasError)) {
-                  _context.next = 42;
+                  _context.next = 44;
                   break;
                 }
-                return _context.abrupt("break", 45);
-              case 42:
+                return _context.abrupt("break", 47);
+              case 44:
                 _i4++;
                 _context.next = 3;
                 break;
-              case 45:
+              case 47:
                 if (!_classPrivateFieldGet(this, _errors).isNotEmpty()) {
-                  _context.next = 47;
+                  _context.next = 49;
                   break;
                 }
                 throw _classPrivateFieldGet(this, _errors);
-              case 47:
+              case 49:
               case "end":
                 return _context.stop();
             }
