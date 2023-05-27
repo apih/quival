@@ -242,11 +242,15 @@ export default class Validator {
       let hasError = false;
 
       for (const [rule, parameters] of Object.entries(rules)) {
+        if (rule === '') {
+          continue;
+        }
+
         if (
           !Validator.#implicitRules.includes(rule) &&
-          (typeof value == 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
+          (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
         ) {
-          break;
+          continue;
         }
 
         let result, status, message;

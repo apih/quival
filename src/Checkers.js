@@ -821,7 +821,7 @@ export default class Checkers {
   checkIpv6(attribute, value, parameters) {
     value = String(value);
 
-    if (value.split('::').length > 2) {
+    if (value.includes(':::') || value.split('::').length > 2) {
       return false;
     }
 
