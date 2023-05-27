@@ -14,6 +14,16 @@ globalThis.File = class {
 };
 
 describe('Validation', () => {
+  describe(`Empty rule`, () => {
+    it(`Passes when the rule is empty`, async () => {
+      const validator = new Validator({ field: 'abc' }, { field: '' });
+      assert(await validator.passes());
+
+      validator.setRules({ field: ['', ''] });
+      assert(await validator.passes());
+    });
+  });
+
   describe(`Rule 'accepted'`, () => {
     const rules = { field: 'accepted' };
 
@@ -1205,6 +1215,9 @@ describe('Validation', () => {
       validator.setData({ field: 'abc' });
       assert(await validator.fails());
 
+      validator.setData({ field: '1:::2' });
+      assert(await validator.fails());
+
       validator.setData({ field: '2001::3333:4444:CCCC:DDDD::EEEE:FFFF' });
       assert(await validator.fails());
     });
@@ -1889,6 +1902,25 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'nullable'`, () => {
+    const rules = { field: 'nullable|integer' };
+
+    it(`Passes when the field is null`, async () => {
+      const validator = new Validator({ field: null }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is not null and is an integer`, async () => {
+      const validator = new Validator({ field: 123 }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not null and is not an integer`, async () => {
+      const validator = new Validator({ field: 'abc' }, rules);
+      assert(await validator.fails());
+    });
+  });
+
   describe(`Rule 'numeric'`, () => {
     const rules = { field: 'numeric' };
 
@@ -2368,6 +2400,20 @@ describe('Validation', () => {
 
     it(`Fails when the string's length is greater than ${size}`, async () => {
       const validator = new Validator({ field: 'abcdefg' }, { field: `string|size:${size}` });
+      assert(await validator.fails());
+    });
+  });
+
+  describe(`Rule 'sometimes'`, () => {
+    const rules = { field: 'sometimes|required' };
+
+    it(`Passes when the field does not exist`, async () => {
+      const validator = new Validator({}, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field exists`, async () => {
+      const validator = new Validator({ field: '' }, rules);
       assert(await validator.fails());
     });
   });
