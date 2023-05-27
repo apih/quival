@@ -1,10 +1,11 @@
 # Quival
 
-![npm](https://img.shields.io/npm/v/quival?style=flat-square)
-![npm](https://img.shields.io/npm/dt/quival?style=flat-square)
-![NPM](https://img.shields.io/npm/l/quival?style=flat-square)
+[![npm](https://img.shields.io/npm/v/quival?style=flat-square)](https://www.npmjs.com/package/quival)
+[![npm downloads](https://img.shields.io/npm/dm/quival?style=flat-square)](https://www.npmjs.com/package/quival)
+![jsDelivr hits (npm)](https://img.shields.io/jsdelivr/npm/hm/quival?style=flat-square)
+[![License](https://img.shields.io/npm/l/quival?style=flat-square)](LICENSE.md)
 
-This library provides the ability to perform data validation easily in JavaScript. It is heavily based on [Laravel Validation](https://laravel.com/docs/10.x/validation).
+This library provides the ability to perform data validation easily in JavaScript. It is heavily based on [Laravel Validation](https://laravel.com/docs/validation).
 
 By sharing similar conventions, it is possible to reuse validation rules on both front and back ends. This library can be used for preliminary data validation on the front end, before submitting the data to Laravel-based app, where the data should be validated again. 
 
@@ -15,7 +16,7 @@ This library is intended to be used in the browser environment, and it was not t
 ## Features
 
 - Provide similar conventions to Laravel Validation
-- Implement most of the rules listed [here](https://laravel.com/docs/10.x/validation#available-validation-rules)
+- Implement most of the rules listed [here](https://laravel.com/docs/validation#available-validation-rules)
 
 ## Installation
 
