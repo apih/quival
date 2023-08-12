@@ -1,9 +1,13 @@
 export function toCamelCase(string) {
-  return string.replace(/(_\w)/g, (match) => match[1].toUpperCase());
+  return string
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/, ' ')
+    .trim()
+    .replace(/(\s\w)/g, (match) => match[1].toUpperCase());
 }
 
 export function toSnakeCase(string) {
-  return string.replace(/[\w]([A-Z])/g, (match) => match[0] + '_' + match[1].toLowerCase()).toLowerCase();
+  return string.replace(/(.)(?=[A-Z])/g, (match) => match + '_').toLowerCase();
 }
 
 export function escapeRegExp(string) {
