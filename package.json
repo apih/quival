@@ -10,11 +10,13 @@
   "keywords": [
     "data validation",
     "form",
+    "form validation",
     "front end",
     "laravel",
     "quick",
     "validation",
-    "validator"
+    "validator",
+    "validatorjs"
   ],
   "repository": {
     "type": "git",
