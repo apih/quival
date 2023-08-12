@@ -2,7 +2,7 @@ import Checkers from './Checkers.js';
 import ErrorBag from './ErrorBag.js';
 import Lang from './Lang.js';
 import Replacers from './Replacers.js';
-import { flattenObject, getByPath, isEmpty, isNumeric, isPlainObject, toCamelCase, toSnakeCase } from './helpers.js';
+import { flattenObject, getByPath, isEmpty, isNumeric, isPlainObject, parseCsvString, toCamelCase, toSnakeCase } from './helpers.js';
 
 export default class Validator {
   static #customCheckers = {};
@@ -171,28 +171,14 @@ export default class Validator {
   parseRules(rules) {
     const parsedRules = {};
 
-    const parseAttributeRules = (rules) => {
-      if (Array.isArray(rules)) {
-        return rules;
-      } else {
-        return String(rules).split('|');
-      }
-    };
-
     for (const [attribute, attributeRules] of Object.entries(rules)) {
       const attributes = attribute.includes('*') ? this.parseWildcardAttribute(attribute) : [attribute];
 
       for (const attribute of attributes) {
         const parsedAttributeRules = {};
 
-        for (const attributeRule of parseAttributeRules(attributeRules)) {
-          const parts = attributeRule.split(':');
-          const rule = parts[0];
-          const parameters = parts
-            .slice(1)
-            .join(':')
-            .split(',')
-            .filter((part) => part !== '');
+        for (const attributeRule of this.parseAttributeRules(attributeRules)) {
+          const [rule, parameters] = this.parseAttributeRule(attributeRule);
 
           parsedAttributeRules[rule] = parameters;
         }
@@ -224,6 +210,28 @@ export default class Validator {
     });
 
     return attributes;
+  }
+
+  parseAttributeRules(rules) {
+    if (Array.isArray(rules)) {
+      return rules;
+    } else {
+      return String(rules).split('|');
+    }
+  }
+
+  parseAttributeRule(rule) {
+    if (Array.isArray(rule)) {
+      return [rule.shift() ?? '', rule];
+    }
+
+    const index = rule.indexOf(':');
+
+    if (index === -1) {
+      return [rule, []];
+    } else {
+      return [rule.substring(0, index), parseCsvString(rule.substring(index + 1))];
+    }
   }
 
   async validate() {

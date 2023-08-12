@@ -54,6 +54,38 @@ export function flattenObject(obj, prefix = '') {
   }, {});
 }
 
+export function parseCsvString(value) {
+  const result = [];
+  let current = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i];
+
+    if (char === '"') {
+      if (insideQuotes && value[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        insideQuotes = !insideQuotes;
+
+        if (insideQuotes) {
+          current = current.trim();
+        }
+      }
+    } else if (char === ',' && !insideQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current);
+
+  return result;
+}
+
 export function parseDate(value) {
   if (isEmpty(value) || typeof value !== 'string') {
     return new Date('');
