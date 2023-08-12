@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/quival?style=flat-square)](https://www.npmjs.com/package/quival)
 [![npm downloads](https://img.shields.io/npm/dm/quival?style=flat-square)](https://www.npmjs.com/package/quival)
-![jsDelivr hits (npm)](https://img.shields.io/jsdelivr/npm/hm/quival?style=flat-square)
+[![jsDelivr hits (npm)](https://img.shields.io/jsdelivr/npm/hm/quival?style=flat-square)](https://cdn.jsdelivr.net/npm/quival@latest/)
 [![License](https://img.shields.io/npm/l/quival?style=flat-square)](LICENSE.md)
 
 This library provides the ability to perform data validation easily in JavaScript. It is heavily based on [Laravel Validation](https://laravel.com/docs/validation).
