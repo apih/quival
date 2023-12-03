@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.6 (https://github.com/apih/quival)
+ * quival v0.2.7 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -31,6 +31,7 @@ this.quival.locales.ms = (function () {
       string: 'Medan :attribute mesti antara :min dan :max huruf.',
     },
     boolean: 'Medan :attribute mesti benar atau salah.',
+    can: 'Medan :attribute field mengandungi nilai yang tidak dibenarkan.',
     confirmed: 'Pengesahan medan :attribute tidak sepadan.',
     current_password: 'Kata laluan tidak sah.',
     date: 'Medan :attribute mesti tarikh yang sah.',
@@ -50,6 +51,7 @@ this.quival.locales.ms = (function () {
     ends_with: 'Medan :attribute mesti berakhir dengan salah satu daripada berikut: :values.',
     enum: 'Nilai :attribute yang dipilih tidak sah.',
     exists: 'Nilai :attribute yang dipilih tidak sah.',
+    extensions: 'Medan :attribute mesti salah satu daripada sambungan berikut: :values.',
     file: 'Medan :attribute mesti fail.',
     filled: 'Medan :attribute mesti mempunyai nilai.',
     gt: {
@@ -64,6 +66,7 @@ this.quival.locales.ms = (function () {
       numeric: 'Medan :attribute mesti lebih besar daripada atau sama dengan :value.',
       string: 'Medan :attribute mesti lebih besar daripada atau sama dengan :value huruf.',
     },
+    hex_color: 'Medan :attribute mesti warna heksadesimal yang sah.',
     image: 'Medan :attribute mesti imej.',
     in: 'Nilai :attribute yang dipilih tidak sah.',
     in_array: 'Medan :attribute mesti wujud dalam :other.',

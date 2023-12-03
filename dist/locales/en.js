@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.6 (https://github.com/apih/quival)
+ * quival v0.2.7 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -31,6 +31,7 @@ this.quival.locales.en = (function () {
       string: 'The :attribute field must be between :min and :max characters.',
     },
     boolean: 'The :attribute field must be true or false.',
+    can: 'The :attribute field contains an unauthorized value.',
     confirmed: 'The :attribute field confirmation does not match.',
     current_password: 'The password is incorrect.',
     date: 'The :attribute field must be a valid date.',
@@ -50,6 +51,7 @@ this.quival.locales.en = (function () {
     ends_with: 'The :attribute field must end with one of the following: :values.',
     enum: 'The selected :attribute is invalid.',
     exists: 'The selected :attribute is invalid.',
+    extensions: 'The :attribute field must have one of the following extensions: :values.',
     file: 'The :attribute field must be a file.',
     filled: 'The :attribute field must have a value.',
     gt: {
@@ -64,6 +66,7 @@ this.quival.locales.en = (function () {
       numeric: 'The :attribute field must be greater than or equal to :value.',
       string: 'The :attribute field must be greater than or equal to :value characters.',
     },
+    hex_color: 'The :attribute field must be a valid hexadecimal color.',
     image: 'The :attribute field must be an image.',
     in: 'The selected :attribute is invalid.',
     in_array: 'The :attribute field must exist in :other.',

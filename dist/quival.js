@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.6 (https://github.com/apih/quival)
+ * quival v0.2.7 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -727,6 +727,9 @@ var quival = (function (exports) {
       }
       return false;
     }
+    checkExtensions(attribute, value, parameters) {
+      return this.checkMimes(attribute, value, parameters);
+    }
     async checkImage(attribute, value, parameters) {
       let result = this.checkMimes(attribute, value, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp']);
       if (!result || typeof FileReader === 'undefined') {
@@ -789,6 +792,9 @@ var quival = (function (exports) {
         return false;
       }
       return true;
+    }
+    checkHexColor(attribute, value, parameters) {
+      return /^#(?:(?:[0-9a-f]{3}){1,2}|(?:[0-9a-f]{4}){1,2})$/i.test(value);
     }
     checkMacAddress(attribute, value, parameters) {
       value = String(value);
@@ -1183,12 +1189,15 @@ var quival = (function (exports) {
     replaceMimes(message, attribute, rule, parameters) {
       return this.replaceMimetypes(message, attribute, rule, parameters);
     }
+    replaceExtensions(message, attribute, rule, parameters) {
+      return this.replaceMimetypes(message, attribute, rule, parameters);
+    }
   }
 
   class Validator {
     static #customCheckers = {};
     static #customReplacers = {};
-    static #dummyRules = ['active_url', 'bail', 'current_password', 'enum', 'exclude', 'exclude_if', 'exclude_unless', 'exclude_with', 'exclude_without', 'exists', 'nullable', 'sometimes', 'unique'];
+    static #dummyRules = ['active_url', 'bail', 'can', 'current_password', 'enum', 'exclude', 'exclude_if', 'exclude_unless', 'exclude_with', 'exclude_without', 'exists', 'nullable', 'sometimes', 'unique'];
     static #implicitRules = ['accepted', 'accepted_if', 'declined', 'declined_if', 'filled', 'missing', 'missing_if', 'missing_unless', 'missing_with', 'missing_with_all', 'present', 'required', 'required_if', 'required_if_accepted', 'required_unless', 'required_with', 'required_with_all', 'required_without', 'required_without_all'];
     #data;
     #rules;
