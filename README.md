@@ -26,7 +26,7 @@ There are 2 ways to start using `quival` in your project.
 
 ### Use CDN link
 
-Get the script from [jsDelivr CDN](https://cdn.jsdelivr.net/npm/quival@latest/) and include it in your HTML page.
+Get the script from [jsDelivr CDN page](https://www.jsdelivr.com/package/npm/quival) and include it in your HTML page.
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/quival@0.2.x/dist/quival.min.js"></script>
@@ -56,7 +56,7 @@ import { Validator } from 'quival';
 const validator = new Validator({ /* data */ }, { /* rules */ });
 ```
 
-## JSFiddle Examples
+## JSFiddle Demos
 
 - [Link dist version from CDN](https://jsfiddle.net/apih/dfn6yzw0)
 - [Import src version from CDN](https://jsfiddle.net/apih/b1643pgm)
