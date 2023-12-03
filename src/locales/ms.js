@@ -54,6 +54,7 @@ export default {
     numeric: 'Medan :attribute mesti lebih besar daripada atau sama dengan :value.',
     string: 'Medan :attribute mesti lebih besar daripada atau sama dengan :value huruf.',
   },
+  hex_color: 'Medan :attribute mesti warna heksadesimal yang sah.',
   image: 'Medan :attribute mesti imej.',
   in: 'Nilai :attribute yang dipilih tidak sah.',
   in_array: 'Medan :attribute mesti wujud dalam :other.',

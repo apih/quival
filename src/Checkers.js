@@ -766,6 +766,10 @@ export default class Checkers {
     return true;
   }
 
+  checkHexColor(attribute, value, parameters) {
+    return /^#(?:(?:[0-9a-f]{3}){1,2}|(?:[0-9a-f]{4}){1,2})$/i.test(value);
+  }
+
   checkMacAddress(attribute, value, parameters) {
     value = String(value);
 

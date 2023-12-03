@@ -1237,6 +1237,63 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'hex_color'`, () => {
+    it(`Passes when the field is a valid color`, async () => {
+      const validator = new Validator({
+        field_1: '#abc',
+        field_2: '#abcd',
+        field_3: '#abcabc',
+        field_4: '#abcdabcd',
+      }, {
+        field_1: 'hex_color',
+        field_2: 'hex_color',
+        field_3: 'hex_color',
+        field_4: 'hex_color',
+      });
+
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not a valid color`, async () => {
+      const validator = new Validator({
+        field_1: '#ghi',
+        field_2: '#ghij',
+        field_3: '#ghighi',
+        field_4: '#ghijghij',
+        field_5: 'abc',
+        field_6: 123,
+        field_7: [1, 2, 3],
+      }, {
+        field_1: 'hex_color',
+        field_2: 'hex_color',
+        field_3: 'hex_color',
+        field_4: 'hex_color',
+        field_5: 'hex_color',
+        field_6: 'hex_color',
+        field_7: 'hex_color',
+      });
+
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the color's value is not 3, 4, 6 or 8 digits.`, async () => {
+      const validator = new Validator({
+        field_1: '#1',
+        field_2: '#12',
+        field_3: '#12345',
+        field_4: '#1234567',
+        field_4: '#123456789',
+      }, {
+        field_1: 'hex_color',
+        field_2: 'hex_color',
+        field_3: 'hex_color',
+        field_4: 'hex_color',
+      });
+
+      assert(await validator.fails());
+    });
+  });
+
   describe(`Rule 'image'`, () => {
     const rules = { field: 'image' };
 
