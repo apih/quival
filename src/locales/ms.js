@@ -21,6 +21,7 @@ export default {
     string: 'Medan :attribute mesti antara :min dan :max huruf.',
   },
   boolean: 'Medan :attribute mesti benar atau salah.',
+  can: 'Medan :attribute field mengandungi nilai yang tidak dibenarkan.',
   confirmed: 'Pengesahan medan :attribute tidak sepadan.',
   current_password: 'Kata laluan tidak sah.',
   date: 'Medan :attribute mesti tarikh yang sah.',

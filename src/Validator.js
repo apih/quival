@@ -11,6 +11,7 @@ export default class Validator {
   static #dummyRules = [
     'active_url',
     'bail',
+    'can',
     'current_password',
     'enum',
     'exclude',
