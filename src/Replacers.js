@@ -257,4 +257,8 @@ export default class Replacers {
   replaceMimes(message, attribute, rule, parameters) {
     return this.replaceMimetypes(message, attribute, rule, parameters);
   }
+
+  replaceExtensions(message, attribute, rule, parameters) {
+    return this.replaceMimetypes(message, attribute, rule, parameters);
+  }
 }

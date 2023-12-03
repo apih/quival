@@ -40,6 +40,7 @@ export default {
   ends_with: 'Medan :attribute mesti berakhir dengan salah satu daripada berikut: :values.',
   enum: 'Nilai :attribute yang dipilih tidak sah.',
   exists: 'Nilai :attribute yang dipilih tidak sah.',
+  extensions: 'Medan :attribute mesti salah satu daripada sambungan berikut: :values.',
   file: 'Medan :attribute mesti fail.',
   filled: 'Medan :attribute mesti mempunyai nilai.',
   gt: {

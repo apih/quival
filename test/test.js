@@ -945,6 +945,26 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'extensions'`, () => {
+    const rules = { field: 'extensions:jpg,png' };
+
+    it(`Passes when the field has a valid extension`, async () => {
+      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpg') }, rules);
+      assert(await validator.passes());
+
+      validator.setData({ field: new File('hello.png', 5 * 1024, 'image/png') });
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field has an invalid extension`, async () => {
+      const validator = new Validator({ field: new File('hello.doc', 5 * 1024, 'application/msword') }, rules);
+      assert(await validator.fails());
+
+      validator.setData({ field: new File('hello.txt', 5 * 1024, 'text/plain') });
+      assert(await validator.fails());
+    });
+  });
+
   describe(`Rule 'file'`, () => {
     const rules = { field: 'file' };
 

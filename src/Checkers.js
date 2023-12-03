@@ -672,6 +672,10 @@ export default class Checkers {
     return false;
   }
 
+  checkExtensions(attribute, value, parameters) {
+    return this.checkMimes(attribute, value, parameters);
+  }
+
   async checkImage(attribute, value, parameters) {
     let result = this.checkMimes(attribute, value, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp']);
 
