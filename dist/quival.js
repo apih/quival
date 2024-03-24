@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.7 (https://github.com/apih/quival)
+ * quival v0.2.8 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -7,10 +7,14 @@ var quival = (function (exports) {
   'use strict';
 
   function toCamelCase(string) {
-    return string.replace(/[-_]/g, ' ').replace(/\s+/, ' ').trim().replace(/(\s\w)/g, match => match[1].toUpperCase());
+    return string
+      .replace(/[-_]/g, ' ')
+      .replace(/\s+/, ' ')
+      .trim()
+      .replace(/(\s\w)/g, (match) => match[1].toUpperCase());
   }
   function toSnakeCase(string) {
-    return string.replace(/(.)(?=[A-Z])/g, match => match + '_').toLowerCase();
+    return string.replace(/(.)(?=[A-Z])/g, (match) => match + '_').toLowerCase();
   }
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -26,8 +30,7 @@ var quival = (function (exports) {
     }
     return current;
   }
-  function flattenObject(obj) {
-    let prefix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+  function flattenObject(obj, prefix = '') {
     return Object.keys(obj).reduce((accumulator, key) => {
       const prefixedKey = prefix ? `${prefix}.${key}` : key;
       if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -71,21 +74,24 @@ var quival = (function (exports) {
       return value;
     }
     let match, years, months, days, hours, minutes, seconds, meridiem;
-    const castToIntegers = value => value && /^\d*$/.test(value) ? parseInt(value) : value;
+    const castToIntegers = (value) => (value && /^\d*$/.test(value) ? parseInt(value) : value);
     if ((match = value.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})\s?((\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?)?/i)) !== null) {
-      [, days, months, years,, hours = 0, minutes = 0,, seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
-    } else if ((match = value.match(/^(\d{2,4})[.\/-](\d{1,2})[.\/-](\d{1,2})\s?((\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?)?/i)) !== null || (match = value.match(/^(\d{4})(\d{2})(\d{2})\s?((\d{2})(\d{2})((\d{2}))?\s?(am|pm)?)?/i)) !== null) {
-      [, years, months, days,, hours = 0, minutes = 0,, seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
-    } else if (match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{4})[.\/-](\d{2})[.\/-](\d{2})/i)) {
-      [, hours, minutes,, seconds, meridiem = 'am', years, months, days] = match.map(castToIntegers);
-    } else if (match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{2})[.\/-](\d{2})[.\/-](\d{4})/i)) {
-      [, hours, minutes,, seconds, meridiem = 'am', days, months, years] = match.map(castToIntegers);
-    } else if (match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?/i)) {
+      [, days, months, years, , hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+    } else if (
+      (match = value.match(/^(\d{2,4})[.\/-](\d{1,2})[.\/-](\d{1,2})\s?((\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?)?/i)) !== null ||
+      (match = value.match(/^(\d{4})(\d{2})(\d{2})\s?((\d{2})(\d{2})((\d{2}))?\s?(am|pm)?)?/i)) !== null
+    ) {
+      [, years, months, days, , hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+    } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{4})[.\/-](\d{2})[.\/-](\d{2})/i))) {
+      [, hours, minutes, , seconds, meridiem = 'am', years, months, days] = match.map(castToIntegers);
+    } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{2})[.\/-](\d{2})[.\/-](\d{4})/i))) {
+      [, hours, minutes, , seconds, meridiem = 'am', days, months, years] = match.map(castToIntegers);
+    } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?/i))) {
       const current = new Date();
       years = current.getFullYear();
       months = current.getMonth() + 1;
       days = current.getDate();
-      [, hours = 0, minutes = 0,, seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+      [, hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
     } else {
       return new Date(value);
     }
@@ -116,7 +122,7 @@ var quival = (function (exports) {
       i: '(\\d{2})',
       s: '(\\d{2})',
       A: '(AM|PM)',
-      a: '(am|pm)'
+      a: '(am|pm)',
     };
     let pattern = '^';
     let indices = {
@@ -126,7 +132,7 @@ var quival = (function (exports) {
       hours: -1,
       minutes: -1,
       seconds: -1,
-      meridiem: -1
+      meridiem: -1,
     };
     let index = 1;
     for (const char of format) {
@@ -156,7 +162,7 @@ var quival = (function (exports) {
     if (match === null) {
       return new Date('');
     }
-    match = match.map(value => value && /^\d*$/.test(value) ? parseInt(value) : value);
+    match = match.map((value) => (value && /^\d*$/.test(value) ? parseInt(value) : value));
     const current = new Date();
     let years = match[indices.years];
     let months = match[indices.months];
@@ -205,13 +211,13 @@ var quival = (function (exports) {
   }
 
   class Checkers {
-    validator;
-    #distinctCache = {};
-    #imageCache = {};
+    #distinctCache;
+    #imageCache;
     constructor(validator) {
+      this.#distinctCache = {};
+      this.#imageCache = {};
       this.validator = validator;
     }
-
     // Internal helpers
     clearCaches() {
       this.#distinctCache = {};
@@ -219,7 +225,7 @@ var quival = (function (exports) {
     }
     isDependent(parameters) {
       const other = this.validator.getValue(parameters[0]);
-      return parameters.slice(1).some(value => value == other);
+      return parameters.slice(1).some((value) => value == other);
     }
     collectRequiredsThenTest(attribute, value, parameters, callback) {
       let result = [];
@@ -241,8 +247,7 @@ var quival = (function (exports) {
       }
       return true;
     }
-    testStringUsingRegex(attribute, value, asciiRegex, unicodeRegex) {
-      let isAscii = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
+    testStringUsingRegex(attribute, value, asciiRegex, unicodeRegex, isAscii = false) {
       if (typeof value !== 'string' && typeof value !== 'number') {
         return false;
       }
@@ -291,7 +296,6 @@ var quival = (function (exports) {
       }
       return callback(value.getTime(), otherValue.getTime());
     }
-
     // Type
     checkArray(attribute, value, parameters) {
       if (!(Array.isArray(value) || isPlainObject(value))) {
@@ -305,6 +309,9 @@ var quival = (function (exports) {
         }
       }
       return true;
+    }
+    checkList(attribute, value, parameters) {
+      return Array.isArray(value);
     }
     checkBoolean(attribute, value, parameters) {
       return [true, false, 0, 1, '0', '1'].includes(value);
@@ -324,7 +331,6 @@ var quival = (function (exports) {
     checkString(attribute, value, parameters) {
       return typeof value === 'string';
     }
-
     // Numeric
     checkDecimal(attribute, value, parameters) {
       if (!this.checkNumeric(attribute, value)) {
@@ -351,7 +357,6 @@ var quival = (function (exports) {
       }
       return numerator % denominator === 0;
     }
-
     // Agreement
     checkAccepted(attribute, value, parameters) {
       return ['yes', 'on', '1', 1, true, 'true'].includes(value);
@@ -371,7 +376,6 @@ var quival = (function (exports) {
       }
       return true;
     }
-
     // Existence
     checkRequired(attribute, value, parameters) {
       if (isEmpty(value)) {
@@ -415,16 +419,16 @@ var quival = (function (exports) {
       return true;
     }
     checkRequiredWith(attribute, value, parameters) {
-      return this.collectRequiredsThenTest(attribute, value, parameters, result => result.includes(true));
+      return this.collectRequiredsThenTest(attribute, value, parameters, (result) => result.includes(true));
     }
     checkRequiredWithAll(attribute, value, parameters) {
-      return this.collectRequiredsThenTest(attribute, value, parameters, result => !result.includes(false));
+      return this.collectRequiredsThenTest(attribute, value, parameters, (result) => !result.includes(false));
     }
     checkRequiredWithout(attribute, value, parameters) {
-      return this.collectRequiredsThenTest(attribute, value, parameters, result => result.includes(false));
+      return this.collectRequiredsThenTest(attribute, value, parameters, (result) => result.includes(false));
     }
     checkRequiredWithoutAll(attribute, value, parameters) {
-      return this.collectRequiredsThenTest(attribute, value, parameters, result => !result.includes(true));
+      return this.collectRequiredsThenTest(attribute, value, parameters, (result) => !result.includes(true));
     }
     checkFilled(attribute, value, parameters) {
       if (typeof value !== 'undefined') {
@@ -435,7 +439,6 @@ var quival = (function (exports) {
     checkPresent(attribute, value, parameters) {
       return typeof value !== 'undefined';
     }
-
     // Missing
     checkMissing(attribute, value, parameters) {
       return !this.validator.hasAttribute(attribute);
@@ -453,12 +456,11 @@ var quival = (function (exports) {
       return true;
     }
     checkMissingWith(attribute, value, parameters) {
-      return this.collectMissingsThenTest(attribute, value, parameters, result => result.includes(false));
+      return this.collectMissingsThenTest(attribute, value, parameters, (result) => result.includes(false));
     }
     checkMissingWithAll(attribute, value, parameters) {
-      return this.collectMissingsThenTest(attribute, value, parameters, result => !result.includes(true));
+      return this.collectMissingsThenTest(attribute, value, parameters, (result) => !result.includes(true));
     }
-
     // Prohibition
     checkProhibited(attribute, value, parameters) {
       return !this.checkRequired(attribute, value);
@@ -485,7 +487,6 @@ var quival = (function (exports) {
       }
       return true;
     }
-
     // Size
     checkSize(attribute, value, parameters) {
       return this.validator.getSize(attribute, value) === parseFloat(parameters[0]);
@@ -499,10 +500,8 @@ var quival = (function (exports) {
     checkBetween(attribute, value, parameters) {
       return this.checkMin(attribute, value, [parameters[0]]) && this.checkMax(attribute, value, [parameters[1]]);
     }
-
     // Digits
-    checkDigits(attribute, value, parameters) {
-      let callback = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : (length, value) => length === value;
+    checkDigits(attribute, value, parameters, callback = (length, value) => length === value) {
       value = String(value ?? '');
       if (!isDigits(value)) {
         return false;
@@ -518,7 +517,6 @@ var quival = (function (exports) {
     checkDigitsBetween(attribute, value, parameters) {
       return this.checkDigits(attribute, value, parameters, (length, value1, value2) => length >= value1 && length <= value2);
     }
-
     // String
     checkAlpha(attribute, value, parameters) {
       return this.testStringUsingRegex(attribute, value, /^[a-z]+$/i, /^[\p{L}\p{M}]+$/u, parameters.includes('ascii'));
@@ -532,8 +530,7 @@ var quival = (function (exports) {
     checkAscii(attribute, value, parameters) {
       return !/[^\x09\x10\x13\x0A\x0D\x20-\x7E]/.test(value);
     }
-    checkRegex(attribute, value, parameters) {
-      let invert = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+    checkRegex(attribute, value, parameters, invert = false) {
       if (!(typeof value === 'string' || isNumeric(value))) {
         return false;
       }
@@ -543,7 +540,11 @@ var quival = (function (exports) {
         throw new Error(`Invalid regular expression pattern: ${expression}`);
       }
       if (flags.includes('u')) {
-        pattern = pattern.replace(/\\A/g, '^').replace(/\\z/gi, '$').replace(/\\([pP])([CLMNPSZ])/g, '\\$1{$2}').replace(/\\\x\{([0-9a-f]+)\}/g, '\\u{$1}');
+        pattern = pattern
+          .replace(/\\A/g, '^')
+          .replace(/\\z/gi, '$')
+          .replace(/\\([pP])([CLMNPSZ])/g, '\\$1{$2}')
+          .replace(/\\\x\{([0-9a-f]+)\}/g, '\\u{$1}');
       }
       const result = new RegExp(pattern, flags).test(value);
       return invert ? !result : result;
@@ -581,7 +582,6 @@ var quival = (function (exports) {
     checkDoesntEndWith(attribute, value, parameters) {
       return !this.checkEndsWith(attribute, value, parameters);
     }
-
     // Compare values
     checkSame(attribute, value, parameters) {
       const other = this.validator.getValue(parameters[0]);
@@ -611,7 +611,6 @@ var quival = (function (exports) {
     checkLte(attribute, value, parameters) {
       return this.compareValues(attribute, value, parameters, (val1, val2) => val1 <= val2);
     }
-
     // Dates
     checkAfter(attribute, value, parameters) {
       return this.compareDates(attribute, value, parameters, (val1, val2) => val1 > val2);
@@ -644,7 +643,7 @@ var quival = (function (exports) {
         i: '(\\d{2})',
         s: '(\\d{2})',
         A: '(AM|PM)',
-        a: '(am|pm)'
+        a: '(am|pm)',
       };
       let pattern = '^';
       for (const char of format) {
@@ -657,7 +656,6 @@ var quival = (function (exports) {
       pattern += '$';
       return new RegExp(pattern).test(value);
     }
-
     // Array / Object
     checkDistinct(attribute, value, parameters) {
       const unparsed = this.validator.getPrimaryAttribute(attribute);
@@ -697,14 +695,14 @@ var quival = (function (exports) {
         return false;
       }
       const data = this.validator.getValue(unparsed.split('.*')[0]) ?? {};
-      return Object.values(flattenObject(data)).some(item => item == value);
+      return Object.values(flattenObject(data)).some((item) => item == value);
     }
     checkIn(attribute, value, parameters) {
       if (!(this.checkArray(attribute, value) && this.validator.hasRule(attribute, 'array'))) {
-        return parameters.some(parameter => parameter == value);
+        return parameters.some((parameter) => parameter == value);
       }
       for (const item of Object.values(value)) {
-        if (!parameters.some(parameter => parameter == item)) {
+        if (!parameters.some((parameter) => parameter == item)) {
           return false;
         }
       }
@@ -713,7 +711,6 @@ var quival = (function (exports) {
     checkNotIn(attribute, value, parameters) {
       return !this.checkIn(attribute, value, parameters);
     }
-
     // File
     checkMimetypes(attribute, value, parameters) {
       if (this.checkFile(attribute, value)) {
@@ -737,17 +734,19 @@ var quival = (function (exports) {
       }
       await new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = event => resolve(event.target.result);
+        reader.onload = (event) => resolve(event.target.result);
         reader.onerror = reject;
         reader.readAsDataURL(value);
-      }).then(async data => {
-        const image = new Image();
-        image.src = data;
-        await image.decode();
-        this.#imageCache[attribute] = image;
-      }).catch(() => {
-        result = false;
-      });
+      })
+        .then(async (data) => {
+          const image = new Image();
+          image.src = data;
+          await image.decode();
+          this.#imageCache[attribute] = image;
+        })
+        .catch(() => {
+          result = false;
+        });
       return result;
     }
     async checkDimensions(attribute, value, parameters) {
@@ -758,7 +757,7 @@ var quival = (function (exports) {
       for (const parameter of parameters) {
         const [key, value] = parameter.split('=', 2);
         if (key === 'ratio' && value.includes('/')) {
-          const [numerator, denominator] = value.split('/', 2).map(part => parseFloat(part, 10));
+          const [numerator, denominator] = value.split('/', 2).map((part) => parseFloat(part, 10));
           constraints[key] = numerator / denominator;
         } else {
           constraints[key] = parseFloat(value, 10);
@@ -767,7 +766,14 @@ var quival = (function (exports) {
       const image = this.#imageCache[attribute];
       const width = image.naturalWidth;
       const height = image.naturalHeight;
-      if (constraints.hasOwnProperty('width') && constraints.width !== width || constraints.hasOwnProperty('height') && constraints.height !== height || constraints.hasOwnProperty('min_width') && constraints.min_width > width || constraints.hasOwnProperty('min_height') && constraints.min_height > height || constraints.hasOwnProperty('max_width') && constraints.max_width < width || constraints.hasOwnProperty('max_height') && constraints.max_height < height) {
+      if (
+        (constraints.hasOwnProperty('width') && constraints.width !== width) ||
+        (constraints.hasOwnProperty('height') && constraints.height !== height) ||
+        (constraints.hasOwnProperty('min_width') && constraints.min_width > width) ||
+        (constraints.hasOwnProperty('min_height') && constraints.min_height > height) ||
+        (constraints.hasOwnProperty('max_width') && constraints.max_width < width) ||
+        (constraints.hasOwnProperty('max_height') && constraints.max_height < height)
+      ) {
         return false;
       }
       if (constraints.hasOwnProperty('ratio')) {
@@ -775,12 +781,13 @@ var quival = (function (exports) {
       }
       return true;
     }
-
     // Miscellaneous
     checkEmail(attribute, value, parameters) {
-      const firstRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      const firstRegex =
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       if (!firstRegex.test(value)) {
-        const secondRegex = /^((?:[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]|[^\u0000-\u007F])+@(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?(?:\.(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?)+)*$/;
+        const secondRegex =
+          /^((?:[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]|[^\u0000-\u007F])+@(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?(?:\.(?:[a-zA-Z0-9]|[^\u0000-\u007F])(?:(?:[a-zA-Z0-9-]|[^\u0000-\u007F]){0,61}(?:[a-zA-Z0-9]|[^\u0000-\u007F]))?)+)*$/;
         return secondRegex.test(value);
       }
       return true;
@@ -801,7 +808,7 @@ var quival = (function (exports) {
       const separators = {
         '-': 2,
         ':': 2,
-        '.': 4
+        '.': 4,
       };
       let separator, digits;
       for ([separator, digits] of Object.entries(separators)) {
@@ -857,7 +864,7 @@ var quival = (function (exports) {
     checkTimezone(attribute, value, parameters) {
       try {
         Intl.DateTimeFormat(undefined, {
-          timeZone: value
+          timeZone: value,
         });
       } catch (error) {
         if (String(error).toLowerCase().includes('invalid time zone')) {
@@ -883,7 +890,7 @@ var quival = (function (exports) {
   }
 
   class ErrorBag {
-    #data = {};
+    #data;
     keys() {
       return Object.keys(this.#data);
     }
@@ -927,12 +934,12 @@ var quival = (function (exports) {
     }
     all() {
       const result = [];
-      this.values().forEach(messages => result.push(...messages));
+      this.values().forEach((messages) => result.push(...messages));
       return result;
     }
     count() {
       let count = 0;
-      this.values().forEach(messages => count += messages.length);
+      this.values().forEach((messages) => (count += messages.length));
       return count;
     }
     isEmpty() {
@@ -940,6 +947,9 @@ var quival = (function (exports) {
     }
     isNotEmpty() {
       return !this.isEmpty();
+    }
+    constructor() {
+      this.#data = {};
     }
   }
 
@@ -971,45 +981,38 @@ var quival = (function (exports) {
   }
 
   class Replacers {
-    validator;
     constructor(validator) {
       this.validator = validator;
     }
     replace(message, data) {
-      Object.entries(data).forEach(_ref => {
-        let [key, value] = _ref;
-        return message = message.replaceAll(':' + key, value);
-      });
+      Object.entries(data).forEach(([key, value]) => (message = message.replaceAll(':' + key, value)));
       return message;
     }
-
     // Numeric
     replaceDecimal(message, attribute, rule, parameters) {
       return this.replace(message, {
-        decimal: parameters.join('-')
+        decimal: parameters.join('-'),
       });
     }
     replaceMultipleOf(message, attribute, rule, parameters) {
       return this.replace(message, {
-        value: parameters[0]
+        value: parameters[0],
       });
     }
-
     // Agreement
     replaceAcceptedIf(message, attribute, rule, parameters) {
       return this.replace(message, {
         other: this.validator.getDisplayableAttribute(parameters[0]),
-        value: this.validator.getDisplayableValue(parameters[0], this.validator.getValue(parameters[0]))
+        value: this.validator.getDisplayableValue(parameters[0], this.validator.getValue(parameters[0])),
       });
     }
     replaceDeclinedIf(message, attribute, rule, parameters) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
     }
-
     // Existence
     replaceRequiredArrayKeys(message, attribute, rule, parameters) {
       return this.replace(message, {
-        values: parameters.map(value => this.validator.getDisplayableValue(attribute, value)).join(', ')
+        values: parameters.map((value) => this.validator.getDisplayableValue(attribute, value)).join(', '),
       });
     }
     replaceRequiredIf(message, attribute, rule, parameters) {
@@ -1021,12 +1024,15 @@ var quival = (function (exports) {
     replaceRequiredUnless(message, attribute, rule, parameters) {
       return this.replace(message, {
         other: this.validator.getDisplayableAttribute(parameters[0]),
-        values: parameters.slice(1).map(value => this.validator.getDisplayableValue(parameters[0], value)).join(', ')
+        values: parameters
+          .slice(1)
+          .map((value) => this.validator.getDisplayableValue(parameters[0], value))
+          .join(', '),
       });
     }
     replaceRequiredWith(message, attribute, rule, parameters) {
       return this.replace(message, {
-        values: parameters.map(value => this.validator.getDisplayableAttribute(value)).join(' / ')
+        values: parameters.map((value) => this.validator.getDisplayableAttribute(value)).join(' / '),
       });
     }
     replaceRequiredWithAll(message, attribute, rule, parameters) {
@@ -1038,14 +1044,13 @@ var quival = (function (exports) {
     replaceRequiredWithoutAll(message, attribute, rule, parameters) {
       return this.replaceRequiredWith(message, attribute, rule, parameters);
     }
-
     // Missing
     replaceMissingIf(message, attribute, rule, parameters) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
     }
     replaceMissingUnless(message, attribute, rule, parameters) {
       return this.replace(this.replaceRequiredUnless(message, attribute, rule, parameters), {
-        value: this.validator.getDisplayableValue(parameters[0], parameters[1])
+        value: this.validator.getDisplayableValue(parameters[0], parameters[1]),
       });
     }
     replaceMissingWith(message, attribute, rule, parameters) {
@@ -1054,7 +1059,6 @@ var quival = (function (exports) {
     replaceMissingWithAll(message, attribute, rule, parameters) {
       return this.replaceRequiredWith(message, attribute, rule, parameters);
     }
-
     // Prohibition
     replaceProhibitedIf(message, attribute, rule, parameters) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
@@ -1064,37 +1068,35 @@ var quival = (function (exports) {
     }
     replaceProhibits(message, attribute, rule, parameters) {
       return this.replace(message, {
-        other: parameters.map(value => this.validator.getDisplayableAttribute(value)).join(' / ')
+        other: parameters.map((value) => this.validator.getDisplayableAttribute(value)).join(' / '),
       });
     }
-
     // Size
     replaceSize(message, attribute, rule, parameters) {
       return this.replace(message, {
-        size: parameters[0]
+        size: parameters[0],
       });
     }
     replaceMin(message, attribute, rule, parameters) {
       return this.replace(message, {
-        min: parameters[0]
+        min: parameters[0],
       });
     }
     replaceMax(message, attribute, rule, parameters) {
       return this.replace(message, {
-        max: parameters[0]
+        max: parameters[0],
       });
     }
     replaceBetween(message, attribute, rule, parameters) {
       return this.replace(message, {
         min: parameters[0],
-        max: parameters[1]
+        max: parameters[1],
       });
     }
-
     // Digits
     replaceDigits(message, attribute, rule, parameters) {
       return this.replace(message, {
-        digits: parameters[0]
+        digits: parameters[0],
       });
     }
     replaceMinDigits(message, attribute, rule, parameters) {
@@ -1106,7 +1108,6 @@ var quival = (function (exports) {
     replaceDigitsBetween(message, attribute, rule, parameters) {
       return this.replaceBetween(message, attribute, rule, parameters);
     }
-
     // String
     replaceStartsWith(message, attribute, rule, parameters) {
       return this.replaceRequiredArrayKeys(message, attribute, rule, parameters);
@@ -1120,7 +1121,6 @@ var quival = (function (exports) {
     replaceDoesntEndWith(message, attribute, rule, parameters) {
       return this.replaceRequiredArrayKeys(message, attribute, rule, parameters);
     }
-
     // Compare values
     replaceSame(message, attribute, rule, parameters) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
@@ -1131,7 +1131,7 @@ var quival = (function (exports) {
     replaceGt(message, attribute, rule, parameters) {
       const value = this.validator.getValue(parameters[0]);
       return this.replace(message, {
-        value: value ? this.validator.getSize(parameters[0], value) : this.validator.getDisplayableAttribute(parameters[0])
+        value: value ? this.validator.getSize(parameters[0], value) : this.validator.getDisplayableAttribute(parameters[0]),
       });
     }
     replaceGte(message, attribute, rule, parameters) {
@@ -1143,12 +1143,11 @@ var quival = (function (exports) {
     replaceLte(message, attribute, rule, parameters) {
       return this.replaceGt(message, attribute, rule, parameters);
     }
-
     // Dates
     replaceAfter(message, attribute, rule, parameters) {
       const other = parameters[0];
       return this.replace(message, {
-        date: this.validator.hasAttribute(other) ? this.validator.getDisplayableAttribute(other) : other
+        date: this.validator.hasAttribute(other) ? this.validator.getDisplayableAttribute(other) : other,
       });
     }
     replaceAfterOrEqual(message, attribute, rule, parameters) {
@@ -1165,10 +1164,9 @@ var quival = (function (exports) {
     }
     replaceDateFormat(message, attribute, rule, parameters) {
       return this.replace(message, {
-        format: parameters[0]
+        format: parameters[0],
       });
     }
-
     // Array
     replaceInArray(message, attribute, rule, parameters) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
@@ -1179,11 +1177,10 @@ var quival = (function (exports) {
     replaceNotIn(message, attribute, rule, parameters) {
       return this.replaceRequiredArrayKeys(message, attribute, rule, parameters);
     }
-
     // File
     replaceMimetypes(message, attribute, rule, parameters) {
       return this.replace(message, {
-        values: parameters.join(', ')
+        values: parameters.join(', '),
       });
     }
     replaceMimes(message, attribute, rule, parameters) {
@@ -1197,8 +1194,43 @@ var quival = (function (exports) {
   class Validator {
     static #customCheckers = {};
     static #customReplacers = {};
-    static #dummyRules = ['active_url', 'bail', 'can', 'current_password', 'enum', 'exclude', 'exclude_if', 'exclude_unless', 'exclude_with', 'exclude_without', 'exists', 'nullable', 'sometimes', 'unique'];
-    static #implicitRules = ['accepted', 'accepted_if', 'declined', 'declined_if', 'filled', 'missing', 'missing_if', 'missing_unless', 'missing_with', 'missing_with_all', 'present', 'required', 'required_if', 'required_if_accepted', 'required_unless', 'required_with', 'required_with_all', 'required_without', 'required_without_all'];
+    static #dummyRules = [
+      'active_url',
+      'bail',
+      'can',
+      'current_password',
+      'enum',
+      'exclude',
+      'exclude_if',
+      'exclude_unless',
+      'exclude_with',
+      'exclude_without',
+      'exists',
+      'nullable',
+      'sometimes',
+      'unique',
+    ];
+    static #implicitRules = [
+      'accepted',
+      'accepted_if',
+      'declined',
+      'declined_if',
+      'filled',
+      'missing',
+      'missing_if',
+      'missing_unless',
+      'missing_with',
+      'missing_with_all',
+      'present',
+      'required',
+      'required_if',
+      'required_if_accepted',
+      'required_unless',
+      'required_with',
+      'required_with_all',
+      'required_without',
+      'required_without_all',
+    ];
     #data;
     #rules;
     #customMessages;
@@ -1207,12 +1239,9 @@ var quival = (function (exports) {
     #checkers;
     #replacers;
     #errors;
-    #implicitAttributes = {};
-    #stopOnFirstFailure = false;
-    #alwaysBail = false;
-    fileRules = ['file', 'image', 'mimetypes', 'mimes'];
-    numericRules = ['decimal', 'numeric', 'integer'];
-    sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
+    #implicitAttributes;
+    #stopOnFirstFailure;
+    #alwaysBail;
     static setLocale(locale) {
       Lang.locale(locale);
     }
@@ -1235,12 +1264,13 @@ var quival = (function (exports) {
     static addDummyRule(rule) {
       Validator.#dummyRules.push(rule);
     }
-    constructor() {
-      let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      let rules = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      let messages = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      let attributes = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-      let values = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : {};
+    constructor(data = {}, rules = {}, messages = {}, attributes = {}, values = {}) {
+      this.#implicitAttributes = {};
+      this.#stopOnFirstFailure = false;
+      this.#alwaysBail = false;
+      this.fileRules = ['file', 'image', 'mimetypes', 'mimes'];
+      this.numericRules = ['decimal', 'numeric', 'integer'];
+      this.sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
       this.setProperties(data, rules, messages, attributes, values);
       this.#checkers = new Checkers(this);
       this.#replacers = new Replacers(this);
@@ -1252,12 +1282,7 @@ var quival = (function (exports) {
       }
       this.#errors = new ErrorBag();
     }
-    setProperties() {
-      let data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-      let rules = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      let messages = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      let attributes = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-      let values = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : {};
+    setProperties(data = {}, rules = {}, messages = {}, attributes = {}, values = {}) {
       this.#data = data;
       this.#rules = this.parseRules(rules);
       this.#customMessages = messages;
@@ -1289,13 +1314,11 @@ var quival = (function (exports) {
       this.#implicitAttributes[implicitAttribute] = attribute;
       return this;
     }
-    stopOnFirstFailure() {
-      let flag = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+    stopOnFirstFailure(flag = true) {
       this.#stopOnFirstFailure = flag;
       return this;
     }
-    alwaysBail() {
-      let flag = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+    alwaysBail(flag = true) {
       this.#alwaysBail = flag;
       return this;
     }
@@ -1323,12 +1346,11 @@ var quival = (function (exports) {
       if (!(Array.isArray(data) || isPlainObject(data))) {
         return [attribute];
       }
-      Object.entries(data).forEach(_ref => {
-        let [key, value] = _ref;
+      Object.entries(data).forEach(([key, value]) => {
         const implicitAttribute = `${parentPath}.${key}.${childPath}`.replace(/\.$/, '');
         const implicitAttributes = implicitAttribute.includes('*') ? this.parseWildcardAttribute(implicitAttribute) : [implicitAttribute];
         attributes.push(...implicitAttributes);
-        implicitAttributes.forEach(value => this.#implicitAttributes[value] = attribute);
+        implicitAttributes.forEach((value) => (this.#implicitAttributes[value] = attribute));
       });
       return attributes;
     }
@@ -1365,7 +1387,10 @@ var quival = (function (exports) {
           if (rule === '') {
             continue;
           }
-          if (!Validator.#implicitRules.includes(rule) && (typeof value === 'undefined' || typeof value === 'string' && value.trim() === '' || isNullable && value === null)) {
+          if (
+            !Validator.#implicitRules.includes(rule) &&
+            (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
+          ) {
             continue;
           }
           let result, status, message;
@@ -1380,10 +1405,7 @@ var quival = (function (exports) {
           if (typeof result === 'boolean') {
             status = result;
           } else {
-            ({
-              status,
-              message
-            } = result);
+            ({ status, message } = result);
           }
           if (!status) {
             hasError = true;
@@ -1451,7 +1473,7 @@ var quival = (function (exports) {
         attribute: attributeName,
         ATTRIBUTE: attributeName.toLocaleUpperCase(),
         Attribute: attributeName.charAt(0).toLocaleUpperCase() + attributeName.substring(1),
-        input: this.getDisplayableValue(attribute, value)
+        input: this.getDisplayableValue(attribute, value),
       };
       for (const [key, value] of Object.entries(data)) {
         message = message.replaceAll(':' + key, value);
@@ -1547,5 +1569,4 @@ var quival = (function (exports) {
   exports.Validator = Validator;
 
   return exports;
-
 })({});

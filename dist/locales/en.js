@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.7 (https://github.com/apih/quival)
+ * quival v0.2.8 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -75,6 +75,7 @@ this.quival.locales.en = (function () {
     ipv4: 'The :attribute field must be a valid IPv4 address.',
     ipv6: 'The :attribute field must be a valid IPv6 address.',
     json: 'The :attribute field must be a valid JSON string.',
+    list: 'The :attribute field must be a list.',
     lowercase: 'The :attribute field must be lowercase.',
     lt: {
       array: 'The :attribute field must have less than :value items.',

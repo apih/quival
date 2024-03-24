@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.7 (https://github.com/apih/quival)
+ * quival v0.2.8 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -75,6 +75,7 @@ this.quival.locales.ms = (function () {
     ipv4: 'Medan :attribute mesti alamat IPv4 yang sah.',
     ipv6: 'Medan :attribute mesti alamat IPv6 yang sah.',
     json: 'Medan :attribute mesti rentetan JSON yang sah.',
+    list: 'Medan :attribute mesti berbentuk senarai.',
     lowercase: 'Medan :attribute mesti dalam huruf kecil.',
     lt: {
       array: 'Medan :attribute mesti mempunyai kurang daripada :value item.',
