@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import babel from '@rollup/plugin-babel';
+import swc from '@rollup/plugin-swc';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
+import prettier from 'rollup-plugin-prettier';
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const banner = `/*!
@@ -20,6 +21,7 @@ const options = [
         format: 'iife',
         name: 'quival',
         banner,
+        plugins: [prettier(JSON.parse(fs.readFileSync('.prettierrc.json')))],
       },
       {
         file: 'dist/quival.min.js',
@@ -31,19 +33,15 @@ const options = [
     ],
     plugins: [
       resolve(),
-      babel({
+      swc({
+        swc: {
+          env: {
+            targets: 'last 1 year',
+            mode: 'entry',
+            coreJs: '3.22',
+          },
+        },
         exclude: 'node_modules/**',
-        babelHelpers: 'bundled',
-        presets: [
-          [
-            '@babel/preset-env',
-            {
-              targets: {
-                browsers: 'last 1 year',
-              },
-            },
-          ],
-        ],
       }),
     ],
   },
