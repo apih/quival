@@ -1487,6 +1487,26 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'list'`, () => {
+    const rules = { field: 'list' };
+
+    it(`Passes when the field is a list`, async () => {
+      const validator = new Validator({ field: [1, 2, 3] }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not a list`, async () => {
+      const validator = new Validator({ field: { a: 1, b: 2, c: 3} }, rules);
+      assert(await validator.fails());
+
+      validator.setData({ field: 123 });
+      assert(await validator.fails());
+
+      validator.setData({ field: 'abc' });
+      assert(await validator.fails());
+    });
+  });
+
   describe(`Rule 'lowercase'`, () => {
     const rules = { field: 'lowercase' };
 

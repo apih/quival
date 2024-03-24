@@ -65,6 +65,7 @@ export default {
   ipv4: 'Medan :attribute mesti alamat IPv4 yang sah.',
   ipv6: 'Medan :attribute mesti alamat IPv6 yang sah.',
   json: 'Medan :attribute mesti rentetan JSON yang sah.',
+  list: 'Medan :attribute mesti berbentuk senarai.',
   lowercase: 'Medan :attribute mesti dalam huruf kecil.',
   lt: {
     array: 'Medan :attribute mesti mempunyai kurang daripada :value item.',

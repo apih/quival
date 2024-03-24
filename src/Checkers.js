@@ -132,6 +132,10 @@ export default class Checkers {
     return true;
   }
 
+  checkList(attribute, value, parameters) {
+    return Array.isArray(value);
+  }
+
   checkBoolean(attribute, value, parameters) {
     return [true, false, 0, 1, '0', '1'].includes(value);
   }
