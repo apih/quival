@@ -242,12 +242,12 @@ export default class Validator {
     for (const [attribute, rules] of Object.entries(this.#rules)) {
       let value = this.getValue(attribute);
 
-      if (rules.hasOwnProperty('sometimes') && typeof value === 'undefined') {
+      if (Object.hasOwn(rules, 'sometimes') && typeof value === 'undefined') {
         continue;
       }
 
-      const doBail = this.#alwaysBail || rules.hasOwnProperty('bail');
-      const isNullable = rules.hasOwnProperty('nullable');
+      const doBail = this.#alwaysBail || Object.hasOwn(rules, 'bail');
+      const isNullable = Object.hasOwn(rules, 'nullable');
       let hasError = false;
 
       for (const [rule, parameters] of Object.entries(rules)) {
@@ -327,7 +327,7 @@ export default class Validator {
     let message;
 
     for (const key of [`${attribute}.${rule}`, rule]) {
-      if (this.#customMessages.hasOwnProperty(key)) {
+      if (Object.hasOwn(this.#customMessages, key)) {
         message = this.#customMessages[key];
 
         break;
@@ -390,14 +390,14 @@ export default class Validator {
     const unparsed = this.getPrimaryAttribute(attribute);
 
     for (const name of [attribute, unparsed]) {
-      if (this.#customAttributes.hasOwnProperty(name)) {
+      if (Object.hasOwn(this.#customAttributes, name)) {
         return this.#customAttributes[name];
       } else if (Lang.has(`attributes.${name}`)) {
         return Lang.get(`attributes.${name}`);
       }
     }
 
-    if (this.#implicitAttributes.hasOwnProperty(attribute)) {
+    if (Object.hasOwn(this.#implicitAttributes, attribute)) {
       return attribute;
     }
 
@@ -413,7 +413,7 @@ export default class Validator {
       return 'empty';
     } else if (typeof value === 'boolean' || this.hasRule(attribute, 'boolean')) {
       return Number(value) ? 'true' : 'false';
-    } else if (this.#customValues.hasOwnProperty(path)) {
+    } else if (Object.hasOwn(this.#customValues, path)) {
       return this.#customValues[path];
     } else if (Lang.has(`values.${path}`)) {
       return Lang.get(`values.${path}`);
@@ -431,7 +431,7 @@ export default class Validator {
       return value.size / 1024;
     } else if (isPlainObject(value)) {
       return Object.keys(value).length;
-    } else if (value.hasOwnProperty('length')) {
+    } else if (Object.hasOwn(value, 'length')) {
       return value.length;
     }
 
@@ -448,7 +448,7 @@ export default class Validator {
     attribute = this.getPrimaryAttribute(attribute);
     rules = typeof rules === 'string' ? [rules] : rules;
 
-    if (!this.#rules.hasOwnProperty(attribute)) {
+    if (!Object.hasOwn(this.#rules, attribute)) {
       return false;
     }
 
@@ -462,7 +462,7 @@ export default class Validator {
   }
 
   getPrimaryAttribute(attribute) {
-    return this.#implicitAttributes.hasOwnProperty(attribute) ? this.#implicitAttributes[attribute] : attribute;
+    return Object.hasOwn(this.#implicitAttributes, attribute) ? this.#implicitAttributes[attribute] : attribute;
   }
 
   hasAttribute(attribute) {

@@ -14,7 +14,7 @@ export default class ErrorBag {
   }
 
   add(key, message) {
-    if (this.#data.hasOwnProperty(key)) {
+    if (Object.hasOwn(this.#data, key)) {
       this.#data[key].push(message);
     } else {
       this.#data[key] = [message];
@@ -23,7 +23,7 @@ export default class ErrorBag {
 
   get(key) {
     if (!key.includes('*')) {
-      return this.#data.hasOwnProperty(key) ? this.#data[key] : {};
+      return Object.hasOwn(this.#data, key) ? this.#data[key] : {};
     }
 
     const pattern = new RegExp('^' + key.replaceAll('*', '.*?') + '$');

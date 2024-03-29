@@ -91,7 +91,7 @@ export default class Checkers {
   compareDates(attribute, value, parameters, callback) {
     const rule = this.validator.getRule(attribute);
 
-    value = rule.hasOwnProperty('date_format') ? parseDateByFormat(value, rule.date_format[0]) : parseDate(value);
+    value = Object.hasOwn(rule, 'date_format') ? parseDateByFormat(value, rule.date_format[0]) : parseDate(value);
 
     if (!isValidDate(value)) {
       return false;
@@ -105,7 +105,7 @@ export default class Checkers {
     } else {
       const otherRule = this.validator.getRule(other);
 
-      otherValue = otherRule.hasOwnProperty('date_format') ? parseDateByFormat(otherValue, otherRule.date_format[0]) : parseDate(otherValue);
+      otherValue = Object.hasOwn(otherRule, 'date_format') ? parseDateByFormat(otherValue, otherRule.date_format[0]) : parseDate(otherValue);
     }
 
     if (!isValidDate(otherValue)) {
@@ -573,7 +573,7 @@ export default class Checkers {
     let pattern = '^';
 
     for (const char of format) {
-      if (formats.hasOwnProperty(char)) {
+      if (Object.hasOwn(formats, char)) {
         pattern += formats[char];
       } else {
         pattern += '\\' + char;
@@ -598,7 +598,7 @@ export default class Checkers {
 
     let stringified;
 
-    if (this.#distinctCache.hasOwnProperty(parentPath)) {
+    if (Object.hasOwn(this.#distinctCache, parentPath)) {
       stringified = this.#distinctCache[parentPath];
     } else {
       stringified = JSON.stringify(flattenObject(this.validator.getValue(parentPath) ?? {}));
@@ -709,7 +709,7 @@ export default class Checkers {
   }
 
   async checkDimensions(attribute, value, parameters) {
-    if (!this.checkImage(attribute, value) || !this.#imageCache.hasOwnProperty(attribute)) {
+    if (!this.checkImage(attribute, value) || !Object.hasOwn(this.#imageCache, attribute)) {
       return false;
     }
 
@@ -732,17 +732,17 @@ export default class Checkers {
     const height = image.naturalHeight;
 
     if (
-      (constraints.hasOwnProperty('width') && constraints.width !== width) ||
-      (constraints.hasOwnProperty('height') && constraints.height !== height) ||
-      (constraints.hasOwnProperty('min_width') && constraints.min_width > width) ||
-      (constraints.hasOwnProperty('min_height') && constraints.min_height > height) ||
-      (constraints.hasOwnProperty('max_width') && constraints.max_width < width) ||
-      (constraints.hasOwnProperty('max_height') && constraints.max_height < height)
+      (Object.hasOwn(constraints, 'width') && constraints.width !== width) ||
+      (Object.hasOwn(constraints, 'height') && constraints.height !== height) ||
+      (Object.hasOwn(constraints, 'min_width') && constraints.min_width > width) ||
+      (Object.hasOwn(constraints, 'min_height') && constraints.min_height > height) ||
+      (Object.hasOwn(constraints, 'max_width') && constraints.max_width < width) ||
+      (Object.hasOwn(constraints, 'max_height') && constraints.max_height < height)
     ) {
       return false;
     }
 
-    if (constraints.hasOwnProperty('ratio')) {
+    if (Object.hasOwn(constraints, 'ratio')) {
       return Math.abs(constraints.ratio - width / height) <= 1 / (Math.max(width, height) + 1);
     }
 

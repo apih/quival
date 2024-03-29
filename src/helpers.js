@@ -19,7 +19,7 @@ export function getByPath(obj, path, defaultValue) {
   let current = obj;
 
   for (const key of keys) {
-    if (!current.hasOwnProperty(key)) {
+    if (!Object.hasOwn(current, key)) {
       return defaultValue;
     }
 
@@ -34,7 +34,7 @@ export function setByPath(obj, path, value) {
   let current = obj;
 
   for (const key of keys.slice(0, -1)) {
-    if (!current.hasOwnProperty(key)) {
+    if (!Object.hasOwn(current, key)) {
       current[key] = {};
     }
 
@@ -173,7 +173,7 @@ export function parseDateByFormat(value, format) {
   let index = 1;
 
   for (const char of format) {
-    if (formats.hasOwnProperty(char)) {
+    if (Object.hasOwn(formats, char)) {
       pattern += formats[char];
 
       if (['Y', 'y'].indexOf(char) !== -1) {
