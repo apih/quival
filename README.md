@@ -29,7 +29,7 @@ There are 2 ways to start using `quival` in your project.
 Get the script from [jsDelivr CDN page](https://www.jsdelivr.com/package/npm/quival) and include it in your HTML page.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quival@0.2.x/dist/quival.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quival@0.3.x/dist/quival.min.js"></script>
 ```
 
 Extract `Validator` class from  `quival` global variable, and you are good to go.
@@ -129,14 +129,7 @@ const validator = new Validator(data, rules, customMessages, customAttributes, c
 // Perform validation
 validator
   .validate()
-  .then(() => {
-    console.log('Successful!');
-  })
-  .catch((errorBag) => {
-    if (errorBag instanceof Error) {
-      throw errorBag;
-    }
-
+  .then((errorBag) => {
     console.log(errorBag.messages());
   });
 ```
@@ -190,6 +183,7 @@ The produced error messages for the code snippet above.
 The following rules are not implemented and will always pass the validation if used.
 
 - `active_url`
+- `can`
 - `current_password`
 - `exclude`
 - `exclude_if`
