@@ -272,6 +272,16 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'bail'`, () => {
+    it(`Passes when the field is null`, async () => {
+      const validator = new Validator({ field: '@bc' }, { field: 'bail|string|alpha|min:5' });
+
+      assert.deepEqual((await validator.validate()).messages(), {
+        field: ['validation.alpha'],
+      });
+    });
+  });
+
   describe(`Rule 'before'`, () => {
     const date = '2022-01-01';
     const rules1 = { field: `before:${date}` };
@@ -1086,56 +1096,65 @@ describe('Validation', () => {
 
   describe(`Rule 'hex_color'`, () => {
     it(`Passes when the field is a valid color`, async () => {
-      const validator = new Validator({
-        field_1: '#abc',
-        field_2: '#abcd',
-        field_3: '#abcabc',
-        field_4: '#abcdabcd',
-      }, {
-        field_1: 'hex_color',
-        field_2: 'hex_color',
-        field_3: 'hex_color',
-        field_4: 'hex_color',
-      });
+      const validator = new Validator(
+        {
+          field_1: '#abc',
+          field_2: '#abcd',
+          field_3: '#abcabc',
+          field_4: '#abcdabcd',
+        },
+        {
+          field_1: 'hex_color',
+          field_2: 'hex_color',
+          field_3: 'hex_color',
+          field_4: 'hex_color',
+        },
+      );
 
       assert(await validator.passes());
     });
 
     it(`Fails when the field is not a valid color`, async () => {
-      const validator = new Validator({
-        field_1: '#ghi',
-        field_2: '#ghij',
-        field_3: '#ghighi',
-        field_4: '#ghijghij',
-        field_5: 'abc',
-        field_6: 123,
-        field_7: [1, 2, 3],
-      }, {
-        field_1: 'hex_color',
-        field_2: 'hex_color',
-        field_3: 'hex_color',
-        field_4: 'hex_color',
-        field_5: 'hex_color',
-        field_6: 'hex_color',
-        field_7: 'hex_color',
-      });
+      const validator = new Validator(
+        {
+          field_1: '#ghi',
+          field_2: '#ghij',
+          field_3: '#ghighi',
+          field_4: '#ghijghij',
+          field_5: 'abc',
+          field_6: 123,
+          field_7: [1, 2, 3],
+        },
+        {
+          field_1: 'hex_color',
+          field_2: 'hex_color',
+          field_3: 'hex_color',
+          field_4: 'hex_color',
+          field_5: 'hex_color',
+          field_6: 'hex_color',
+          field_7: 'hex_color',
+        },
+      );
 
       assert(await validator.fails());
     });
 
     it(`Fails when the color's value is not 3, 4, 6 or 8 digits.`, async () => {
-      const validator = new Validator({
-        field_1: '#1',
-        field_2: '#12',
-        field_3: '#12345',
-        field_4: '#1234567',
-        field_4: '#123456789',
-      }, {
-        field_1: 'hex_color',
-        field_2: 'hex_color',
-        field_3: 'hex_color',
-        field_4: 'hex_color',
-      });
+      const validator = new Validator(
+        {
+          field_1: '#1',
+          field_2: '#12',
+          field_3: '#12345',
+          field_4: '#1234567',
+          field_4: '#123456789',
+        },
+        {
+          field_1: 'hex_color',
+          field_2: 'hex_color',
+          field_3: 'hex_color',
+          field_4: 'hex_color',
+        },
+      );
 
       assert(await validator.fails());
     });
@@ -1323,7 +1342,7 @@ describe('Validation', () => {
     });
 
     it(`Fails when the field is not a list`, async () => {
-      const validator = new Validator({ field: { a: 1, b: 2, c: 3} }, rules);
+      const validator = new Validator({ field: { a: 1, b: 2, c: 3 } }, rules);
       assert(await validator.fails());
 
       validator.setData({ field: 123 });
