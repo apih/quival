@@ -77,4 +77,16 @@ export default class ErrorBag {
   isNotEmpty() {
     return !this.isEmpty();
   }
+
+  sortByKeys(keys) {
+    const data = {};
+
+    for (const key of keys) {
+      if (Object.hasOwn(this.#data, key)) {
+        data[key] = this.#data[key];
+      }
+    }
+
+    this.#data = data;
+  }
 }

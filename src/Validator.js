@@ -239,6 +239,8 @@ export default class Validator {
     this.#checkers.clearCaches();
     this.#errors = new ErrorBag();
 
+    const tasks = [];
+
     for (const [attribute, rules] of Object.entries(this.#rules)) {
       let value = this.getValue(attribute);
 
@@ -246,70 +248,74 @@ export default class Validator {
         continue;
       }
 
-      const doBail = this.#alwaysBail || Object.hasOwn(rules, 'bail');
-      const isNullable = Object.hasOwn(rules, 'nullable');
-      let hasError = false;
+      tasks.push(async () => {
+        const doBail = this.#alwaysBail || Object.hasOwn(rules, 'bail');
+        const isNullable = Object.hasOwn(rules, 'nullable');
+        let noError = true;
 
-      for (const [rule, parameters] of Object.entries(rules)) {
-        if (rule === '') {
-          continue;
-        }
+        for (const [rule, parameters] of Object.entries(rules)) {
+          if (rule === '') {
+            continue;
+          }
 
-        if (
-          !Validator.#implicitRules.includes(rule) &&
-          (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
-        ) {
-          continue;
-        }
+          if (
+            !Validator.#implicitRules.includes(rule) &&
+            (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
+          ) {
+            continue;
+          }
 
-        let result, status, message;
-        const camelRule = toCamelCase('check_' + rule);
+          let result, success, message;
+          const camelRule = toCamelCase('check_' + rule);
 
-        if (typeof this.#checkers[camelRule] === 'function') {
-          result = await this.#checkers[camelRule](attribute, value, parameters);
-        } else if (Validator.#dummyRules.includes(rule)) {
-          result = true;
-        } else {
-          throw new Error(`Invalid validation rule: ${rule}`);
-        }
+          if (typeof this.#checkers[camelRule] === 'function') {
+            result = await this.#checkers[camelRule](attribute, value, parameters);
+          } else if (Validator.#dummyRules.includes(rule)) {
+            result = true;
+          } else {
+            throw new Error(`Invalid validation rule: ${rule}`);
+          }
 
-        if (typeof result === 'boolean') {
-          status = result;
-        } else {
-          ({ status, message } = result);
-        }
+          if (typeof result === 'boolean') {
+            success = result;
+          } else {
+            ({ success, message } = result);
+          }
 
-        if (!status) {
-          hasError = true;
-          message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
-          message = this.makeReplacements(message, attribute, rule, parameters);
+          if (!success) {
+            noError = false;
+            message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
+            message = this.makeReplacements(message, attribute, rule, parameters);
 
-          this.#errors.add(attribute, message);
+            this.#errors.add(attribute, message);
 
-          if (doBail || Validator.#implicitRules.includes(rule)) {
-            break;
+            if (doBail || Validator.#implicitRules.includes(rule)) {
+              break;
+            }
           }
         }
-      }
 
-      if (this.#stopOnFirstFailure && hasError) {
-        break;
-      }
+        return noError;
+      });
     }
 
-    if (this.#errors.isNotEmpty()) {
-      throw this.#errors;
+    if (this.#stopOnFirstFailure) {
+      for (const task of tasks) {
+        if (!(await task())) break;
+      }
+    } else {
+      await Promise.allSettled(tasks.map((task) => task()));
+
+      this.#errors.sortByKeys(Object.keys(this.#rules));
     }
+
+    return this.#errors;
   }
 
   async passes() {
-    try {
-      await this.validate();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
+    await this.validate();
 
+    if (this.#errors.isNotEmpty()) {
       return false;
     }
 
@@ -342,7 +348,7 @@ export default class Validator {
           key += '.array';
         } else if (value instanceof File || this.hasRule(attribute, this.fileRules)) {
           key += '.file';
-        } else if (typeof value === 'number' || this.hasRule(attribute, this.numericRules)) {
+        } else if (isNumeric(value) || this.hasRule(attribute, this.numericRules)) {
           key += '.numeric';
         } else {
           key += '.string';
