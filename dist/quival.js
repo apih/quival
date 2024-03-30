@@ -1,5 +1,5 @@
 /*!
- * quival v0.2.8 (https://github.com/apih/quival)
+ * quival v0.3.0 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -23,7 +23,7 @@ var quival = (function (exports) {
     const keys = path.split('.');
     let current = obj;
     for (const key of keys) {
-      if (!current.hasOwnProperty(key)) {
+      if (!Object.hasOwn(current, key)) {
         return defaultValue;
       }
       current = current[key];
@@ -136,7 +136,7 @@ var quival = (function (exports) {
     };
     let index = 1;
     for (const char of format) {
-      if (formats.hasOwnProperty(char)) {
+      if (Object.hasOwn(formats, char)) {
         pattern += formats[char];
         if (['Y', 'y'].indexOf(char) !== -1) {
           indices.years = index++;
@@ -279,7 +279,7 @@ var quival = (function (exports) {
     }
     compareDates(attribute, value, parameters, callback) {
       const rule = this.validator.getRule(attribute);
-      value = rule.hasOwnProperty('date_format') ? parseDateByFormat(value, rule.date_format[0]) : parseDate(value);
+      value = Object.hasOwn(rule, 'date_format') ? parseDateByFormat(value, rule.date_format[0]) : parseDate(value);
       if (!isValidDate(value)) {
         return false;
       }
@@ -289,7 +289,7 @@ var quival = (function (exports) {
         otherValue = parseDate(other);
       } else {
         const otherRule = this.validator.getRule(other);
-        otherValue = otherRule.hasOwnProperty('date_format') ? parseDateByFormat(otherValue, otherRule.date_format[0]) : parseDate(otherValue);
+        otherValue = Object.hasOwn(otherRule, 'date_format') ? parseDateByFormat(otherValue, otherRule.date_format[0]) : parseDate(otherValue);
       }
       if (!isValidDate(otherValue)) {
         return false;
@@ -647,7 +647,7 @@ var quival = (function (exports) {
       };
       let pattern = '^';
       for (const char of format) {
-        if (formats.hasOwnProperty(char)) {
+        if (Object.hasOwn(formats, char)) {
           pattern += formats[char];
         } else {
           pattern += '\\' + char;
@@ -665,7 +665,7 @@ var quival = (function (exports) {
       const index = unparsed.indexOf('*');
       const parentPath = unparsed.substring(0, index - 1);
       let stringified;
-      if (this.#distinctCache.hasOwnProperty(parentPath)) {
+      if (Object.hasOwn(this.#distinctCache, parentPath)) {
         stringified = this.#distinctCache[parentPath];
       } else {
         stringified = JSON.stringify(flattenObject(this.validator.getValue(parentPath) ?? {}));
@@ -750,7 +750,7 @@ var quival = (function (exports) {
       return result;
     }
     async checkDimensions(attribute, value, parameters) {
-      if (!this.checkImage(attribute, value) || !this.#imageCache.hasOwnProperty(attribute)) {
+      if (!this.checkImage(attribute, value) || !Object.hasOwn(this.#imageCache, attribute)) {
         return false;
       }
       const constraints = {};
@@ -767,16 +767,16 @@ var quival = (function (exports) {
       const width = image.naturalWidth;
       const height = image.naturalHeight;
       if (
-        (constraints.hasOwnProperty('width') && constraints.width !== width) ||
-        (constraints.hasOwnProperty('height') && constraints.height !== height) ||
-        (constraints.hasOwnProperty('min_width') && constraints.min_width > width) ||
-        (constraints.hasOwnProperty('min_height') && constraints.min_height > height) ||
-        (constraints.hasOwnProperty('max_width') && constraints.max_width < width) ||
-        (constraints.hasOwnProperty('max_height') && constraints.max_height < height)
+        (Object.hasOwn(constraints, 'width') && constraints.width !== width) ||
+        (Object.hasOwn(constraints, 'height') && constraints.height !== height) ||
+        (Object.hasOwn(constraints, 'min_width') && constraints.min_width > width) ||
+        (Object.hasOwn(constraints, 'min_height') && constraints.min_height > height) ||
+        (Object.hasOwn(constraints, 'max_width') && constraints.max_width < width) ||
+        (Object.hasOwn(constraints, 'max_height') && constraints.max_height < height)
       ) {
         return false;
       }
-      if (constraints.hasOwnProperty('ratio')) {
+      if (Object.hasOwn(constraints, 'ratio')) {
         return Math.abs(constraints.ratio - width / height) <= 1 / (Math.max(width, height) + 1);
       }
       return true;
@@ -901,7 +901,7 @@ var quival = (function (exports) {
       return Object.entries(this.#data);
     }
     add(key, message) {
-      if (this.#data.hasOwnProperty(key)) {
+      if (Object.hasOwn(this.#data, key)) {
         this.#data[key].push(message);
       } else {
         this.#data[key] = [message];
@@ -909,7 +909,7 @@ var quival = (function (exports) {
     }
     get(key) {
       if (!key.includes('*')) {
-        return this.#data.hasOwnProperty(key) ? this.#data[key] : {};
+        return Object.hasOwn(this.#data, key) ? this.#data[key] : {};
       }
       const pattern = new RegExp('^' + key.replaceAll('*', '.*?') + '$');
       const result = {};
@@ -947,6 +947,15 @@ var quival = (function (exports) {
     }
     isNotEmpty() {
       return !this.isEmpty();
+    }
+    sortByKeys(keys) {
+      const data = {};
+      for (const key of keys) {
+        if (Object.hasOwn(this.#data, key)) {
+          data[key] = this.#data[key];
+        }
+      }
+      this.#data = data;
     }
     constructor() {
       this.#data = {};
@@ -1375,63 +1384,66 @@ var quival = (function (exports) {
     async validate() {
       this.#checkers.clearCaches();
       this.#errors = new ErrorBag();
+      const tasks = [];
       for (const [attribute, rules] of Object.entries(this.#rules)) {
         let value = this.getValue(attribute);
-        if (rules.hasOwnProperty('sometimes') && typeof value === 'undefined') {
+        if (Object.hasOwn(rules, 'sometimes') && typeof value === 'undefined') {
           continue;
         }
-        const doBail = this.#alwaysBail || rules.hasOwnProperty('bail');
-        const isNullable = rules.hasOwnProperty('nullable');
-        let hasError = false;
-        for (const [rule, parameters] of Object.entries(rules)) {
-          if (rule === '') {
-            continue;
-          }
-          if (
-            !Validator.#implicitRules.includes(rule) &&
-            (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
-          ) {
-            continue;
-          }
-          let result, status, message;
-          const camelRule = toCamelCase('check_' + rule);
-          if (typeof this.#checkers[camelRule] === 'function') {
-            result = await this.#checkers[camelRule](attribute, value, parameters);
-          } else if (Validator.#dummyRules.includes(rule)) {
-            result = true;
-          } else {
-            throw new Error(`Invalid validation rule: ${rule}`);
-          }
-          if (typeof result === 'boolean') {
-            status = result;
-          } else {
-            ({ status, message } = result);
-          }
-          if (!status) {
-            hasError = true;
-            message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
-            message = this.makeReplacements(message, attribute, rule, parameters);
-            this.#errors.add(attribute, message);
-            if (doBail || Validator.#implicitRules.includes(rule)) {
-              break;
+        tasks.push(async () => {
+          const doBail = this.#alwaysBail || Object.hasOwn(rules, 'bail');
+          const isNullable = Object.hasOwn(rules, 'nullable');
+          let noError = true;
+          for (const [rule, parameters] of Object.entries(rules)) {
+            if (rule === '') {
+              continue;
+            }
+            if (
+              !Validator.#implicitRules.includes(rule) &&
+              (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
+            ) {
+              continue;
+            }
+            let result, success, message;
+            const camelRule = toCamelCase('check_' + rule);
+            if (typeof this.#checkers[camelRule] === 'function') {
+              result = await this.#checkers[camelRule](attribute, value, parameters);
+            } else if (Validator.#dummyRules.includes(rule)) {
+              result = true;
+            } else {
+              throw new Error(`Invalid validation rule: ${rule}`);
+            }
+            if (typeof result === 'boolean') {
+              success = result;
+            } else {
+              ({ success, message } = result);
+            }
+            if (!success) {
+              noError = false;
+              message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
+              message = this.makeReplacements(message, attribute, rule, parameters);
+              this.#errors.add(attribute, message);
+              if (doBail || Validator.#implicitRules.includes(rule)) {
+                break;
+              }
             }
           }
-        }
-        if (this.#stopOnFirstFailure && hasError) {
-          break;
-        }
+          return noError;
+        });
       }
-      if (this.#errors.isNotEmpty()) {
-        throw this.#errors;
+      if (this.#stopOnFirstFailure) {
+        for (const task of tasks) {
+          if (!(await task())) break;
+        }
+      } else {
+        await Promise.allSettled(tasks.map((task) => task()));
+        this.#errors.sortByKeys(Object.keys(this.#rules));
       }
+      return this.#errors;
     }
     async passes() {
-      try {
-        await this.validate();
-      } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        }
+      await this.validate();
+      if (this.#errors.isNotEmpty()) {
         return false;
       }
       return true;
@@ -1444,7 +1456,7 @@ var quival = (function (exports) {
       attribute = this.getPrimaryAttribute(attribute);
       let message;
       for (const key of [`${attribute}.${rule}`, rule]) {
-        if (this.#customMessages.hasOwnProperty(key)) {
+        if (Object.hasOwn(this.#customMessages, key)) {
           message = this.#customMessages[key];
           break;
         }
@@ -1456,7 +1468,7 @@ var quival = (function (exports) {
             key += '.array';
           } else if (value instanceof File || this.hasRule(attribute, this.fileRules)) {
             key += '.file';
-          } else if (typeof value === 'number' || this.hasRule(attribute, this.numericRules)) {
+          } else if (isNumeric(value) || this.hasRule(attribute, this.numericRules)) {
             key += '.numeric';
           } else {
             key += '.string';
@@ -1492,13 +1504,13 @@ var quival = (function (exports) {
     getDisplayableAttribute(attribute) {
       const unparsed = this.getPrimaryAttribute(attribute);
       for (const name of [attribute, unparsed]) {
-        if (this.#customAttributes.hasOwnProperty(name)) {
+        if (Object.hasOwn(this.#customAttributes, name)) {
           return this.#customAttributes[name];
         } else if (Lang.has(`attributes.${name}`)) {
           return Lang.get(`attributes.${name}`);
         }
       }
-      if (this.#implicitAttributes.hasOwnProperty(attribute)) {
+      if (Object.hasOwn(this.#implicitAttributes, attribute)) {
         return attribute;
       }
       return toSnakeCase(attribute).replaceAll('_', ' ');
@@ -1510,7 +1522,7 @@ var quival = (function (exports) {
         return 'empty';
       } else if (typeof value === 'boolean' || this.hasRule(attribute, 'boolean')) {
         return Number(value) ? 'true' : 'false';
-      } else if (this.#customValues.hasOwnProperty(path)) {
+      } else if (Object.hasOwn(this.#customValues, path)) {
         return this.#customValues[path];
       } else if (Lang.has(`values.${path}`)) {
         return Lang.get(`values.${path}`);
@@ -1526,7 +1538,7 @@ var quival = (function (exports) {
         return value.size / 1024;
       } else if (isPlainObject(value)) {
         return Object.keys(value).length;
-      } else if (value.hasOwnProperty('length')) {
+      } else if (Object.hasOwn(value, 'length')) {
         return value.length;
       }
       return value;
@@ -1538,7 +1550,7 @@ var quival = (function (exports) {
     hasRule(attribute, rules) {
       attribute = this.getPrimaryAttribute(attribute);
       rules = typeof rules === 'string' ? [rules] : rules;
-      if (!this.#rules.hasOwnProperty(attribute)) {
+      if (!Object.hasOwn(this.#rules, attribute)) {
         return false;
       }
       for (const rule of rules) {
@@ -1549,7 +1561,7 @@ var quival = (function (exports) {
       return false;
     }
     getPrimaryAttribute(attribute) {
-      return this.#implicitAttributes.hasOwnProperty(attribute) ? this.#implicitAttributes[attribute] : attribute;
+      return Object.hasOwn(this.#implicitAttributes, attribute) ? this.#implicitAttributes[attribute] : attribute;
     }
     hasAttribute(attribute) {
       return typeof this.getValue(attribute) !== 'undefined';
