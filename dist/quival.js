@@ -1,5 +1,5 @@
 /*!
- * quival v0.3.0 (https://github.com/apih/quival)
+ * quival v0.3.1 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -408,6 +408,12 @@ var quival = (function (exports) {
     }
     checkRequiredIfAccepted(attribute, value, parameters) {
       if (this.checkAccepted(parameters[0], this.validator.getValue(parameters[0]))) {
+        return this.checkRequired(attribute, value);
+      }
+      return true;
+    }
+    checkRequiredIfDeclined(attribute, value, parameters) {
+      if (this.checkDeclined(parameters[0], this.validator.getValue(parameters[0]))) {
         return this.checkRequired(attribute, value);
       }
       return true;
@@ -1030,6 +1036,9 @@ var quival = (function (exports) {
     replaceRequiredIfAccepted(message, attribute, rule, parameters) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
     }
+    replaceRequiredIfDeclined(message, attribute, rule, parameters) {
+      return this.replaceAcceptedIf(message, attribute, rule, parameters);
+    }
     replaceRequiredUnless(message, attribute, rule, parameters) {
       return this.replace(message, {
         other: this.validator.getDisplayableAttribute(parameters[0]),
@@ -1234,6 +1243,7 @@ var quival = (function (exports) {
       'required',
       'required_if',
       'required_if_accepted',
+      'required_if_declined',
       'required_unless',
       'required_with',
       'required_with_all',
