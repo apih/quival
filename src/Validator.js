@@ -40,6 +40,7 @@ export default class Validator {
     'required',
     'required_if',
     'required_if_accepted',
+    'required_if_declined',
     'required_unless',
     'required_with',
     'required_with_all',

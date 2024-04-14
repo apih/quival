@@ -2281,8 +2281,32 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Fails when the field is empty and the other field is declined`, async () => {
+    it(`Fails when the field is empty and the other field is accepted`, async () => {
       const validator = new Validator({ field: '', foo: true }, rules);
+      assert(await validator.fails());
+    });
+  });
+
+  describe(`Rule 'required_if_declined'`, () => {
+    const rules = { field: 'required_if_declined:foo' };
+
+    it(`Passes when the field is filled and the other field is declined`, async () => {
+      const validator = new Validator({ field: 'abc', foo: false }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is filled and the other field is accepted`, async () => {
+      const validator = new Validator({ field: 'abc', foo: true }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is empty and the other field is accepted`, async () => {
+      const validator = new Validator({ field: '', foo: true }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is empty and the other field is declined`, async () => {
+      const validator = new Validator({ field: '', foo: false }, rules);
       assert(await validator.fails());
     });
   });

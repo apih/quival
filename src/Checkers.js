@@ -266,6 +266,14 @@ export default class Checkers {
     return true;
   }
 
+  checkRequiredIfDeclined(attribute, value, parameters) {
+    if (this.checkDeclined(parameters[0], this.validator.getValue(parameters[0]))) {
+      return this.checkRequired(attribute, value);
+    }
+
+    return true;
+  }
+
   checkRequiredUnless(attribute, value, parameters) {
     if (!this.isDependent(parameters)) {
       return this.checkRequired(attribute, value);

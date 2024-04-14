@@ -122,6 +122,7 @@ export default {
   required_array_keys: 'Medan :attribute mesti mengandungi entri untuk: :values.',
   required_if: 'Medan :attribute diperlukan apabila :other adalah :value.',
   required_if_accepted: 'Medan :attribute diperlukan apabila :other diterima.',
+  required_if_declined: 'Medan :attribute diperlukan apabila :other ditolak.',
   required_unless: 'Medan :attribute diperlukan melainkan :other berada dalam :values.',
   required_with: 'Medan :attribute diperlukan apabila :values wujud.',
   required_with_all: 'Medan :attribute diperlukan apabila semua :values wujud.',

@@ -51,6 +51,10 @@ export default class Replacers {
     return this.replaceAcceptedIf(message, attribute, rule, parameters);
   }
 
+  replaceRequiredIfDeclined(message, attribute, rule, parameters) {
+    return this.replaceAcceptedIf(message, attribute, rule, parameters);
+  }
+
   replaceRequiredUnless(message, attribute, rule, parameters) {
     return this.replace(message, {
       other: this.validator.getDisplayableAttribute(parameters[0]),
