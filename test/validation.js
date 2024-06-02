@@ -445,6 +445,25 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'contains'`, () => {
+    const rules = { field: 'contains:abc,def' };
+
+    it(`Passes when the field contains required values`, async () => {
+      const validator = new Validator({ field: ['abc', 'def', 'ghi'] }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field does not contain required values`, async () => {
+      const validator = new Validator({ field: ['def', 'ghi'] }, rules);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is not an array`, async () => {
+      const validator = new Validator({ field: 'abc' }, rules);
+      assert(await validator.fails());
+    });
+  });
+
   describe(`Rule 'date'`, () => {
     const rules = { field: 'date' };
 
