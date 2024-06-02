@@ -1,5 +1,5 @@
 /*!
- * quival v0.3.1 (https://github.com/apih/quival)
+ * quival v0.3.2 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -33,6 +33,7 @@ this.quival.locales.ms = (function () {
     boolean: 'Medan :attribute mesti benar atau salah.',
     can: 'Medan :attribute field mengandungi nilai yang tidak dibenarkan.',
     confirmed: 'Pengesahan medan :attribute tidak sepadan.',
+    contains: 'Medan :attribute tiada nilai yang diperlukan.',
     current_password: 'Kata laluan tidak sah.',
     date: 'Medan :attribute mesti tarikh yang sah.',
     date_equals: 'Medan :attribute mesti bersamaan dengan :date.',
