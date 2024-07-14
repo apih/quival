@@ -1,5 +1,5 @@
 /*!
- * quival v0.3.2 (https://github.com/apih/quival)
+ * quival v0.3.3 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -946,6 +946,9 @@ var quival = (function (exports) {
     has(key) {
       return this.first(key) !== '';
     }
+    remove(key) {
+      delete this.#data[key];
+    }
     messages() {
       return this.#data;
     }
@@ -1269,6 +1272,7 @@ var quival = (function (exports) {
     #checkers;
     #replacers;
     #errors;
+    #skippedAttributes;
     #implicitAttributes;
     #stopOnFirstFailure;
     #alwaysBail;
@@ -1295,6 +1299,7 @@ var quival = (function (exports) {
       Validator.#dummyRules.push(rule);
     }
     constructor(data = {}, rules = {}, messages = {}, attributes = {}, values = {}) {
+      this.#skippedAttributes = [];
       this.#implicitAttributes = {};
       this.#stopOnFirstFailure = false;
       this.#alwaysBail = false;
@@ -1406,9 +1411,11 @@ var quival = (function (exports) {
       this.#checkers.clearCaches();
       this.#errors = new ErrorBag();
       const tasks = [];
+      const skippedAttributes = [];
       for (const [attribute, rules] of Object.entries(this.#rules)) {
         let value = this.getValue(attribute);
         if (Object.hasOwn(rules, 'sometimes') && typeof value === 'undefined') {
+          skippedAttributes.push(attribute);
           continue;
         }
         tasks.push(async () => {
@@ -1416,13 +1423,12 @@ var quival = (function (exports) {
           const isNullable = Object.hasOwn(rules, 'nullable');
           let noError = true;
           for (const [rule, parameters] of Object.entries(rules)) {
-            if (rule === '') {
-              continue;
-            }
             if (
-              !Validator.#implicitRules.includes(rule) &&
-              (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
+              rule === '' ||
+              (!Validator.#implicitRules.includes(rule) &&
+                (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
             ) {
+              skippedAttributes.push(attribute);
               continue;
             }
             let result, success, message;
@@ -1460,6 +1466,7 @@ var quival = (function (exports) {
         await Promise.allSettled(tasks.map((task) => task()));
         this.#errors.sortByKeys(Object.keys(this.#rules));
       }
+      this.#skippedAttributes = skippedAttributes.filter((value, index, array) => array.indexOf(value) === index);
       return this.#errors;
     }
     async passes() {
@@ -1592,6 +1599,9 @@ var quival = (function (exports) {
     }
     errors() {
       return this.#errors;
+    }
+    skippedAttributes() {
+      return this.#skippedAttributes;
     }
   }
 
