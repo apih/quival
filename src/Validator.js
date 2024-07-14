@@ -57,6 +57,7 @@ export default class Validator {
   #checkers;
   #replacers;
   #errors;
+  #skippedAttributes = [];
 
   #implicitAttributes = {};
   #stopOnFirstFailure = false;
@@ -241,11 +242,13 @@ export default class Validator {
     this.#errors = new ErrorBag();
 
     const tasks = [];
+    const skippedAttributes = [];
 
     for (const [attribute, rules] of Object.entries(this.#rules)) {
       let value = this.getValue(attribute);
 
       if (Object.hasOwn(rules, 'sometimes') && typeof value === 'undefined') {
+        skippedAttributes.push(attribute);
         continue;
       }
 
@@ -255,14 +258,12 @@ export default class Validator {
         let noError = true;
 
         for (const [rule, parameters] of Object.entries(rules)) {
-          if (rule === '') {
-            continue;
-          }
-
           if (
-            !Validator.#implicitRules.includes(rule) &&
-            (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null))
+            rule === '' ||
+            (!Validator.#implicitRules.includes(rule) &&
+              (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
           ) {
+            skippedAttributes.push(attribute);
             continue;
           }
 
@@ -309,6 +310,8 @@ export default class Validator {
 
       this.#errors.sortByKeys(Object.keys(this.#rules));
     }
+
+    this.#skippedAttributes = skippedAttributes.filter((value, index, array) => array.indexOf(value) === index);
 
     return this.#errors;
   }
@@ -482,5 +485,9 @@ export default class Validator {
 
   errors() {
     return this.#errors;
+  }
+
+  skippedAttributes() {
+    return this.#skippedAttributes;
   }
 }
