@@ -50,6 +50,10 @@ export default class ErrorBag {
     return this.first(key) !== '';
   }
 
+  remove(key) {
+    delete this.#data[key];
+  }
+
   messages() {
     return this.#data;
   }
