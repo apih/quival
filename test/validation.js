@@ -805,7 +805,7 @@ describe('Validation', () => {
     const rules = { field: 'extensions:jpg,png' };
 
     it(`Passes when the field has a valid extension`, async () => {
-      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpg') }, rules);
+      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpeg') }, rules);
       assert(await validator.passes());
 
       validator.setData({ field: new File('hello.png', 5 * 1024, 'image/png') });
@@ -1183,7 +1183,7 @@ describe('Validation', () => {
     const rules = { field: 'image' };
 
     it(`Passes when the field is an image`, async () => {
-      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpg') }, rules);
+      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpeg') }, rules);
       assert(await validator.passes());
     });
 
@@ -1748,7 +1748,7 @@ describe('Validation', () => {
     const rules = { field: 'mimes:jpg,png' };
 
     it(`Passes when the field has a valid extension`, async () => {
-      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpg') }, rules);
+      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpeg') }, rules);
       assert(await validator.passes());
 
       validator.setData({ field: new File('hello.png', 5 * 1024, 'image/png') });
@@ -1765,10 +1765,10 @@ describe('Validation', () => {
   });
 
   describe(`Rule 'mimetypes'`, () => {
-    const rules = { field: 'mimetypes:image/jpg,image/png' };
+    const rules = { field: 'mimetypes:image/jpeg,image/png' };
 
     it(`Passes when the field has a valid type`, async () => {
-      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpg') }, rules);
+      const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpeg') }, rules);
       assert(await validator.passes());
 
       validator.setData({ field: new File('hello.png', 5 * 1024, 'image/png') });
