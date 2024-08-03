@@ -1185,6 +1185,9 @@ describe('Validation', () => {
     it(`Passes when the field is an image`, async () => {
       const validator = new Validator({ field: new File('hello.jpg', 5 * 1024, 'image/jpeg') }, rules);
       assert(await validator.passes());
+
+      validator.setData({ field: new File('hello.jpeg', 5 * 1024, 'image/jpeg') }, rules);
+      assert(await validator.passes());
     });
 
     it(`Fails when the field is not an image`, async () => {
@@ -1761,6 +1764,14 @@ describe('Validation', () => {
 
       validator.setData({ field: new File('hello.txt', 5 * 1024, 'text/plain') });
       assert(await validator.fails());
+    });
+
+    it(`Passes when the rule's parameter for JPEG file is defined as 'jpg' or 'jpeg'`, async () => {
+      const validator = new Validator({ field: new File('hello.jpeg', 5 * 1024, 'image/jpeg') }, { field: 'mimes:jpg' });
+      assert(await validator.passes());
+
+      validator.setProperties({ field: new File('hello.jpg', 5 * 1024, 'image/jpeg') }, { field: 'mimes:jpeg' });
+      assert(await validator.passes());
     });
   });
 

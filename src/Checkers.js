@@ -691,11 +691,19 @@ export default class Checkers {
   }
 
   checkMimes(attribute, value, parameters) {
-    if (this.checkFile(attribute, value)) {
-      return parameters.includes(value.name.split('.').pop().toLowerCase());
+    if (!this.checkFile(attribute, value)) {
+      return false;
     }
 
-    return false;
+    if (parameters.includes('jpg') && !parameters.includes('jpeg')) {
+      parameters.push('jpeg');
+    }
+
+    if (parameters.includes('jpeg') && !parameters.includes('jpg')) {
+      parameters.push('jpg');
+    }
+
+    return parameters.includes(value.name.split('.').pop().toLowerCase());
   }
 
   checkExtensions(attribute, value, parameters) {
