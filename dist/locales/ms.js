@@ -1,5 +1,5 @@
 /*!
- * quival v0.3.3 (https://github.com/apih/quival)
+ * quival v0.3.4 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */

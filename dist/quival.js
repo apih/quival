@@ -1,5 +1,5 @@
 /*!
- * quival v0.3.3 (https://github.com/apih/quival)
+ * quival v0.3.4 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -736,10 +736,16 @@ var quival = (function (exports) {
       return false;
     }
     checkMimes(attribute, value, parameters) {
-      if (this.checkFile(attribute, value)) {
-        return parameters.includes(value.name.split('.').pop().toLowerCase());
+      if (!this.checkFile(attribute, value)) {
+        return false;
       }
-      return false;
+      if (parameters.includes('jpg') && !parameters.includes('jpeg')) {
+        parameters.push('jpeg');
+      }
+      if (parameters.includes('jpeg') && !parameters.includes('jpg')) {
+        parameters.push('jpg');
+      }
+      return parameters.includes(value.name.split('.').pop().toLowerCase());
     }
     checkExtensions(attribute, value, parameters) {
       return this.checkMimes(attribute, value, parameters);
