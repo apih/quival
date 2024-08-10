@@ -79,6 +79,34 @@ describe('Validation', () => {
       const validator = new Validator({ field: true, other: 'bar' }, rules);
       assert(await validator.passes());
     });
+
+    const rules2 = { field: ['accepted_if:other1,foo', 'accepted_if:other2,bar'] };
+
+    it(`Passes when accepted if other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: true, other1: 'foo', other2: 'bar' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when declined if other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: false, other1: 'foo', other2: 'bar' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Passes when accepted if any other fields' value is equal to provided value`, async () => {
+      const validator = new Validator({ field: true, other1: 'foo', other2: 'baz' }, rules2);
+      assert(await validator.passes());
+
+      validator.setData({ field: true, other1: 'baz', other2: 'bar' });
+      assert(await validator.passes());
+    });
+
+    it(`Fails when declined if any other fields' value is equal to provided value`, async () => {
+      const validator = new Validator({ field: false, other1: 'foo', other2: 'baz' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: false, other1: 'baz', other2: 'bar' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'after'`, () => {
@@ -631,6 +659,34 @@ describe('Validation', () => {
     it(`Passes when accepted if the other field's value is not equal to provided value`, async () => {
       const validator = new Validator({ field: true, other: 'bar' }, rules);
       assert(await validator.passes());
+    });
+
+    const rules2 = { field: ['declined_if:other1,foo', 'declined_if:other2,bar'] };
+
+    it(`Passes when declined if other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: false, other1: 'foo', other2: 'bar' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when accepted if other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: true, other1: 'foo', other2: 'bar' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Passes when declined if any other fields' value is equal to provided value`, async () => {
+      const validator = new Validator({ field: false, other1: 'foo', other2: 'baz' }, rules2);
+      assert(await validator.passes());
+
+      validator.setData({ field: false, other1: 'baz', other2: 'bar' });
+      assert(await validator.passes());
+    });
+
+    it(`Fails when accepted if any other fields' value is equal to provided value`, async () => {
+      const validator = new Validator({ field: true, other1: 'foo', other2: 'baz' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: true, other1: 'baz', other2: 'bar' });
+      assert(await validator.fails());
     });
   });
 
@@ -1917,6 +1973,26 @@ describe('Validation', () => {
       const validator = new Validator({ field: '', other: 'bar' }, rules);
       assert(await validator.fails());
     });
+
+    const rules2 = { field: ['missing_if:other1,foo,bar', 'missing_if:other2,win,amp'] };
+
+    it(`Passes when the field is present and other fields' value are not equal to provided values`, async () => {
+      const validator = new Validator({ field: '', other1: 'baz', other2: 'rar' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is present and other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: '', other1: 'foo', other2: 'win' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is present and any other fields' value is equal to provided value`, async () => {
+      const validator = new Validator({ field: '', other1: 'foo', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: '', other1: 'baz', other2: 'win' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'missing_unless'`, () => {
@@ -1939,6 +2015,26 @@ describe('Validation', () => {
 
     it(`Fails when the field is present and the other field's value is not equal to any value`, async () => {
       const validator = new Validator({ field: '', other: 'bob' }, rules);
+      assert(await validator.fails());
+    });
+
+    const rules2 = { field: ['missing_unless:other1,foo,bar', 'missing_unless:other2,win,amp'] };
+
+    it(`Passes when the field is present and other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: '', other1: 'foo', other2: 'win' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is present and other fields' value are not equal to provided values`, async () => {
+      const validator = new Validator({ field: '', other1: 'baz', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is present and any other fields' value is not equal to provided value`, async () => {
+      const validator = new Validator({ field: '', other1: 'foo', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: '', other1: 'baz', other2: 'win' });
       assert(await validator.fails());
     });
   });
@@ -2153,6 +2249,26 @@ describe('Validation', () => {
       const validator = new Validator({ field: 'abc', other: 'bar' }, rules);
       assert(await validator.fails());
     });
+
+    const rules2 = { field: ['prohibited_if:other1,foo,bar', 'prohibited_if:other2,win,amp'] };
+
+    it(`Passes when the field is filled and other fields' value are not equal to provided values`, async () => {
+      const validator = new Validator({ field: 'abc', other1: 'baz', other2: 'rar' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is filled and other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: 'abc', other1: 'foo', other2: 'win' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is filled and any other fields' value is equal to provided value`, async () => {
+      const validator = new Validator({ field: 'abc', other1: 'foo', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: 'abc', other1: 'baz', other2: 'win' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'prohibited_unless'`, () => {
@@ -2175,6 +2291,26 @@ describe('Validation', () => {
 
     it(`Fails when the field is filled and the other field's value is not equal to any value`, async () => {
       const validator = new Validator({ field: 'abc', other: 'bob' }, rules);
+      assert(await validator.fails());
+    });
+
+    const rules2 = { field: ['prohibited_unless:other1,foo,bar', 'prohibited_unless:other2,win,amp'] };
+
+    it(`Passes when the field is filled and other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: 'abc', other1: 'foo', other2: 'win' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is filled and other fields' value are not equal to provided values`, async () => {
+      const validator = new Validator({ field: 'abc', other1: 'baz', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is filled and any other fields' value is not equal to provided value`, async () => {
+      const validator = new Validator({ field: 'abc', other1: 'foo', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: 'abc', other1: 'baz', other2: 'win' });
       assert(await validator.fails());
     });
   });
@@ -2291,6 +2427,26 @@ describe('Validation', () => {
       const validator = new Validator({ field: '', other: 'bar' }, rules);
       assert(await validator.fails());
     });
+
+    const rules2 = { field: ['required_if:other1,foo,bar', 'required_if:other2,win,amp'] };
+
+    it(`Passes when the field is empty and other fields' value are not equal to provided values`, async () => {
+      const validator = new Validator({ field: '', other1: 'baz', other2: 'rar' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is empty and other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: '', other1: 'foo', other2: 'win' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is empty and any other fields' value is equal to provided value`, async () => {
+      const validator = new Validator({ field: '', other1: 'foo', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: '', other1: 'baz', other2: 'win' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'required_if_accepted'`, () => {
@@ -2313,6 +2469,26 @@ describe('Validation', () => {
 
     it(`Fails when the field is empty and the other field is accepted`, async () => {
       const validator = new Validator({ field: '', foo: true }, rules);
+      assert(await validator.fails());
+    });
+
+    const rules2 = { field: ['required_if_accepted:other1', 'required_if_accepted:other2'] };
+
+    it(`Passes when the field is empty and other fields are declined`, async () => {
+      const validator = new Validator({ field: '', other1: false, other2: false }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is empty and all fields are accepted`, async () => {
+      const validator = new Validator({ field: '', other1: true, other2: true }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is empty and any field is accepted`, async () => {
+      const validator = new Validator({ field: '', other1: true, other2: false }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: '', other1: false, other2: true });
       assert(await validator.fails());
     });
   });
@@ -2339,6 +2515,26 @@ describe('Validation', () => {
       const validator = new Validator({ field: '', foo: false }, rules);
       assert(await validator.fails());
     });
+
+    const rules2 = { field: ['required_if_declined:other1', 'required_if_declined:other2'] };
+
+    it(`Passes when the field is empty and other fields are accepted`, async () => {
+      const validator = new Validator({ field: '', other1: true, other2: true }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is empty and all fields are declined`, async () => {
+      const validator = new Validator({ field: '', other1: false, other2: false }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is empty and any field is declined`, async () => {
+      const validator = new Validator({ field: '', other1: true, other2: false }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: '', other1: false, other2: true });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'required_unless'`, () => {
@@ -2361,6 +2557,26 @@ describe('Validation', () => {
 
     it(`Fails when the field is empty and the other field's value is not equal to any value`, async () => {
       const validator = new Validator({ field: '', other: 'bob' }, rules);
+      assert(await validator.fails());
+    });
+
+    const rules2 = { field: ['required_unless:other1,foo,bar', 'required_unless:other2,win,amp'] };
+
+    it(`Passes when the field is empty and other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ field: '', other1: 'foo', other2: 'win' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is empty and other fields' value are not equal to provided values`, async () => {
+      const validator = new Validator({ field: '', other1: 'baz', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is empty and any other fields' value is not equal to provided value`, async () => {
+      const validator = new Validator({ field: '', other1: 'foo', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: '', other1: 'baz', other2: 'win' });
       assert(await validator.fails());
     });
   });
