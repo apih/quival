@@ -29,7 +29,7 @@ There are 2 ways to start using `quival` in your project.
 Get the script from [jsDelivr CDN page](https://www.jsdelivr.com/package/npm/quival) and include it in your HTML page.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quival@0.3.x/dist/quival.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quival@0.4.x/dist/quival.min.js"></script>
 ```
 
 Extract `Validator` class from  `quival` global variable, and you are good to go.
@@ -83,6 +83,7 @@ Validator.addChecker(
 
 // Prepare arguments
 const data = {
+  refcode: '1bc',
   username: 'idea💡',
   name: '',
   email: 'test',
@@ -98,6 +99,15 @@ const data = {
 };
 
 const rules = {
+  refcode: [
+    'required',
+    function (attribute, value) { // Closure rule
+      return {
+        success: /^[a-z]/i.test(value),
+        message: 'The :attribute field must start with a letter.',
+      };
+    },
+  ],
   username: ['required', 'ascii', 'min:3'],
   name: ['required', 'min:3'],
   email: ['required', 'email'],
@@ -138,6 +148,9 @@ The produced error messages for the code snippet above.
 
 ```json
 {
+  "refcode": [
+    "The refcode field must start with a letter."
+  ],
   "username": [
     "The username field must only contain single-byte alphanumeric characters and symbols."
   ],
