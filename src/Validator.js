@@ -178,12 +178,10 @@ export default class Validator {
       const attributes = attribute.includes('*') ? this.parseWildcardAttribute(attribute) : [attribute];
 
       for (const attribute of attributes) {
-        const parsedAttributeRules = {};
+        const parsedAttributeRules = [];
 
         for (const attributeRule of this.parseAttributeRules(attributeRules)) {
-          const [rule, parameters] = this.parseAttributeRule(attributeRule);
-
-          parsedAttributeRules[rule] = parameters;
+          parsedAttributeRules.push(this.parseAttributeRule(attributeRule));
         }
 
         parsedRules[attribute] = parsedAttributeRules;
@@ -225,7 +223,7 @@ export default class Validator {
 
   parseAttributeRule(rule) {
     if (Array.isArray(rule)) {
-      return [rule.shift() ?? '', rule];
+      return [rule[0] ?? '', rule.slice(1)];
     }
 
     const index = rule.indexOf(':');
@@ -246,18 +244,19 @@ export default class Validator {
 
     for (const [attribute, rules] of Object.entries(this.#rules)) {
       let value = this.getValue(attribute);
+      const hasRule = (ruleName) => rules.some((rule) => rule[0] === ruleName);
 
-      if (Object.hasOwn(rules, 'sometimes') && typeof value === 'undefined') {
+      if (hasRule('sometimes') && typeof value === 'undefined') {
         skippedAttributes.push(attribute);
         continue;
       }
 
       tasks.push(async () => {
-        const doBail = this.#alwaysBail || Object.hasOwn(rules, 'bail');
-        const isNullable = Object.hasOwn(rules, 'nullable');
+        const doBail = this.#alwaysBail || hasRule('bail');
+        const isNullable = hasRule('nullable');
         let noError = true;
 
-        for (const [rule, parameters] of Object.entries(rules)) {
+        for (const [rule, parameters] of rules) {
           if (
             rule === '' ||
             (!Validator.#implicitRules.includes(rule) &&
@@ -463,7 +462,7 @@ export default class Validator {
     }
 
     for (const rule of rules) {
-      if (this.#rules[attribute].hasOwnProperty(rule)) {
+      if (this.#rules[attribute].some((attributeRule) => attributeRule[0] === rule)) {
         return true;
       }
     }
