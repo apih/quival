@@ -247,6 +247,20 @@ export default class Validator {
     const skippedAttributes = [];
 
     for (const [attribute, rules] of Object.entries(this.#rules)) {
+      for (const [rule] of rules) {
+        if (
+          rule === '' ||
+          typeof rule === 'function' ||
+          typeof this.#checkers[toCamelCase('check_' + rule)] === 'function' ||
+          Validator.#dummyRules.includes(rule)
+        )
+          continue;
+
+        throw new Error(`Invalid validation rule: ${rule}`);
+      }
+    }
+
+    for (const [attribute, rules] of Object.entries(this.#rules)) {
       let value = this.getValue(attribute);
       const hasRule = (ruleName) => rules.some((rule) => rule[0] === ruleName);
 
@@ -321,7 +335,13 @@ export default class Validator {
         if (!(await task())) break;
       }
     } else {
-      await Promise.allSettled(tasks.map((task) => task()));
+      await Promise.allSettled(tasks.map((task) => task())).then((results) => {
+        for (const result of results) {
+          if (result.status === 'rejected') {
+            throw result.reason;
+          }
+        }
+      });
 
       this.#errors.sortByKeys(Object.keys(this.#rules));
     }

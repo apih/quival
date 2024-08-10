@@ -24,6 +24,19 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Invalid rule`, () => {
+    it(`Fails when the rule is invalid`, async () => {
+      const validator = new Validator({ field: 'abc' }, { field: 'foobar' });
+
+      try {
+        await validator.passes();
+        assert.fail('Invalid rule should throw an error');
+      } catch (error) {
+        assert.equal(error.message, 'Invalid validation rule: foobar');
+      }
+    });
+  });
+
   describe(`Closure rule`, () => {
     const rules = {
       field: function (attribute, value) {
