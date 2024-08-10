@@ -24,6 +24,40 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Closure rule`, () => {
+    const rules = {
+      field: function (attribute, value) {
+        return /^[a-z]/i.test(value);
+      },
+    };
+
+    it(`Passes when the value starts with a letter`, async () => {
+      const validator = new Validator({ field: 'abc' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the value does not start with a letter`, async () => {
+      const validator = new Validator({ field: 123 }, rules);
+      assert(await validator.fails());
+    });
+
+    it(`Passes when the error message is correct`, async () => {
+      const validator = new Validator(
+        { field: 123 },
+        {
+          field: function (attribute, value) {
+            return {
+              success: /^[a-z]/i.test(value),
+              message: 'The :attribute must start with a letter.',
+            };
+          },
+        },
+      );
+
+      assert.equal((await validator.validate()).first('field'), 'The field must start with a letter.');
+    });
+  });
+
   describe(`Rule 'accepted'`, () => {
     const rules = { field: 'accepted' };
 

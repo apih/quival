@@ -216,6 +216,8 @@ export default class Validator {
   parseAttributeRules(rules) {
     if (Array.isArray(rules)) {
       return rules;
+    } else if (typeof rules === 'function') {
+      return [rules];
     } else {
       return String(rules).split('|');
     }
@@ -224,6 +226,8 @@ export default class Validator {
   parseAttributeRule(rule) {
     if (Array.isArray(rule)) {
       return [rule[0] ?? '', rule.slice(1)];
+    } else if (typeof rule === 'function') {
+      return [rule, []];
     }
 
     const index = rule.indexOf(':');
@@ -259,7 +263,8 @@ export default class Validator {
         for (const [rule, parameters] of rules) {
           if (
             rule === '' ||
-            (!Validator.#implicitRules.includes(rule) &&
+            (typeof rule !== 'function' &&
+              !Validator.#implicitRules.includes(rule) &&
               (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
           ) {
             skippedAttributes.push(attribute);
@@ -267,21 +272,32 @@ export default class Validator {
           }
 
           let result, success, message;
-          const camelRule = toCamelCase('check_' + rule);
 
-          if (typeof this.#checkers[camelRule] === 'function') {
-            result = await this.#checkers[camelRule](attribute, value, parameters);
-          } else if (Validator.#dummyRules.includes(rule)) {
-            result = true;
-          } else {
+          const checker = (() => {
+            if (typeof rule === 'function') {
+              return rule;
+            } else {
+              const checker = this.#checkers[toCamelCase('check_' + rule)] ?? null;
+
+              if (checker === null && Validator.#dummyRules.includes(rule)) {
+                return () => true;
+              }
+
+              return checker;
+            }
+          })();
+
+          if (checker === null) {
             throw new Error(`Invalid validation rule: ${rule}`);
           }
 
+          result = await checker.call(this.#checkers, attribute, value, parameters);
+
           if (typeof result === 'boolean') {
-            success = result;
-          } else {
-            ({ success, message } = result);
+            result = { success: result };
           }
+
+          ({ success, message = '' } = result);
 
           if (!success) {
             noError = false;
@@ -330,6 +346,10 @@ export default class Validator {
   }
 
   getMessage(attribute, rule) {
+    if (typeof rule === 'function') {
+      return '';
+    }
+
     const value = this.getValue(attribute);
     attribute = this.getPrimaryAttribute(attribute);
 
@@ -386,10 +406,12 @@ export default class Validator {
       message = message.replaceAll(':index', index).replaceAll(':position', index + 1);
     }
 
-    const camelRule = toCamelCase('replace_' + rule);
+    if (typeof rule === 'string') {
+      const replacer = this.#replacers[toCamelCase('replace_' + rule)] ?? null;
 
-    if (typeof this.#replacers[camelRule] === 'function') {
-      message = this.#replacers[camelRule](message, attribute, rule, parameters);
+      if (replacer) {
+        message = replacer.call(this.#replacers, message, attribute, rule, parameters);
+      }
     }
 
     return message;
