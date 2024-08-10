@@ -1,5 +1,5 @@
 /*!
- * quival v0.3.4 (https://github.com/apih/quival)
+ * quival v0.4.0 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -1368,10 +1368,9 @@ var quival = (function (exports) {
       for (const [attribute, attributeRules] of Object.entries(rules)) {
         const attributes = attribute.includes('*') ? this.parseWildcardAttribute(attribute) : [attribute];
         for (const attribute of attributes) {
-          const parsedAttributeRules = {};
+          const parsedAttributeRules = [];
           for (const attributeRule of this.parseAttributeRules(attributeRules)) {
-            const [rule, parameters] = this.parseAttributeRule(attributeRule);
-            parsedAttributeRules[rule] = parameters;
+            parsedAttributeRules.push(this.parseAttributeRule(attributeRule));
           }
           parsedRules[attribute] = parsedAttributeRules;
         }
@@ -1398,13 +1397,17 @@ var quival = (function (exports) {
     parseAttributeRules(rules) {
       if (Array.isArray(rules)) {
         return rules;
+      } else if (typeof rules === 'function') {
+        return [rules];
       } else {
         return String(rules).split('|');
       }
     }
     parseAttributeRule(rule) {
       if (Array.isArray(rule)) {
-        return [rule.shift() ?? '', rule];
+        return [rule[0] ?? '', rule.slice(1)];
+      } else if (typeof rule === 'function') {
+        return [rule, []];
       }
       const index = rule.indexOf(':');
       if (index === -1) {
@@ -1419,38 +1422,60 @@ var quival = (function (exports) {
       const tasks = [];
       const skippedAttributes = [];
       for (const [attribute, rules] of Object.entries(this.#rules)) {
+        for (const [rule] of rules) {
+          if (
+            rule === '' ||
+            typeof rule === 'function' ||
+            typeof this.#checkers[toCamelCase('check_' + rule)] === 'function' ||
+            Validator.#dummyRules.includes(rule)
+          )
+            continue;
+          throw new Error(`Invalid validation rule: ${rule}`);
+        }
+      }
+      for (const [attribute, rules] of Object.entries(this.#rules)) {
         let value = this.getValue(attribute);
-        if (Object.hasOwn(rules, 'sometimes') && typeof value === 'undefined') {
+        const hasRule = (ruleName) => rules.some((rule) => rule[0] === ruleName);
+        if (hasRule('sometimes') && typeof value === 'undefined') {
           skippedAttributes.push(attribute);
           continue;
         }
         tasks.push(async () => {
-          const doBail = this.#alwaysBail || Object.hasOwn(rules, 'bail');
-          const isNullable = Object.hasOwn(rules, 'nullable');
+          const doBail = this.#alwaysBail || hasRule('bail');
+          const isNullable = hasRule('nullable');
           let noError = true;
-          for (const [rule, parameters] of Object.entries(rules)) {
+          for (const [rule, parameters] of rules) {
             if (
               rule === '' ||
-              (!Validator.#implicitRules.includes(rule) &&
+              (typeof rule !== 'function' &&
+                !Validator.#implicitRules.includes(rule) &&
                 (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
             ) {
               skippedAttributes.push(attribute);
               continue;
             }
             let result, success, message;
-            const camelRule = toCamelCase('check_' + rule);
-            if (typeof this.#checkers[camelRule] === 'function') {
-              result = await this.#checkers[camelRule](attribute, value, parameters);
-            } else if (Validator.#dummyRules.includes(rule)) {
-              result = true;
-            } else {
+            const checker = (() => {
+              if (typeof rule === 'function') {
+                return rule;
+              } else {
+                const checker = this.#checkers[toCamelCase('check_' + rule)] ?? null;
+                if (checker === null && Validator.#dummyRules.includes(rule)) {
+                  return () => true;
+                }
+                return checker;
+              }
+            })();
+            if (checker === null) {
               throw new Error(`Invalid validation rule: ${rule}`);
             }
+            result = await checker.call(this.#checkers, attribute, value, parameters);
             if (typeof result === 'boolean') {
-              success = result;
-            } else {
-              ({ success, message } = result);
+              result = {
+                success: result,
+              };
             }
+            ({ success, message = '' } = result);
             if (!success) {
               noError = false;
               message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
@@ -1469,7 +1494,13 @@ var quival = (function (exports) {
           if (!(await task())) break;
         }
       } else {
-        await Promise.allSettled(tasks.map((task) => task()));
+        await Promise.allSettled(tasks.map((task) => task())).then((results) => {
+          for (const result of results) {
+            if (result.status === 'rejected') {
+              throw result.reason;
+            }
+          }
+        });
         this.#errors.sortByKeys(Object.keys(this.#rules));
       }
       this.#skippedAttributes = skippedAttributes.filter((value, index, array) => array.indexOf(value) === index);
@@ -1486,6 +1517,9 @@ var quival = (function (exports) {
       return !(await this.passes());
     }
     getMessage(attribute, rule) {
+      if (typeof rule === 'function') {
+        return '';
+      }
       const value = this.getValue(attribute);
       attribute = this.getPrimaryAttribute(attribute);
       let message;
@@ -1529,9 +1563,11 @@ var quival = (function (exports) {
       if (index !== -1) {
         message = message.replaceAll(':index', index).replaceAll(':position', index + 1);
       }
-      const camelRule = toCamelCase('replace_' + rule);
-      if (typeof this.#replacers[camelRule] === 'function') {
-        message = this.#replacers[camelRule](message, attribute, rule, parameters);
+      if (typeof rule === 'string') {
+        const replacer = this.#replacers[toCamelCase('replace_' + rule)] ?? null;
+        if (replacer) {
+          message = replacer.call(this.#replacers, message, attribute, rule, parameters);
+        }
       }
       return message;
     }
@@ -1588,7 +1624,7 @@ var quival = (function (exports) {
         return false;
       }
       for (const rule of rules) {
-        if (this.#rules[attribute].hasOwnProperty(rule)) {
+        if (this.#rules[attribute].some((attributeRule) => attributeRule[0] === rule)) {
           return true;
         }
       }
