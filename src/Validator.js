@@ -63,7 +63,9 @@ export default class Validator {
   #stopOnFirstFailure = false;
   #alwaysBail = false;
 
+  arrayRules = ['array', 'list'];
   fileRules = ['file', 'image', 'mimetypes', 'mimes'];
+  stringRules = ['string', 'alpha', 'alpha_dash', 'alpha_num', 'ascii', 'email'];
   numericRules = ['decimal', 'numeric', 'integer'];
   sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
 
@@ -387,10 +389,12 @@ export default class Validator {
       let key = rule;
 
       if (this.sizeRules.includes(key)) {
-        if (Array.isArray(value) || isPlainObject(value) || this.hasRule(attribute, 'array')) {
+        if (Array.isArray(value) || isPlainObject(value) || this.hasRule(attribute, this.arrayRules)) {
           key += '.array';
         } else if (value instanceof File || this.hasRule(attribute, this.fileRules)) {
           key += '.file';
+        } else if (this.hasRule(attribute, this.stringRules)) {
+          key += '.string';
         } else if (isNumeric(value) || this.hasRule(attribute, this.numericRules)) {
           key += '.numeric';
         } else {
@@ -476,6 +480,8 @@ export default class Validator {
   getSize(attribute, value) {
     if (isEmpty(value)) {
       return 0;
+    } else if (this.hasRule(attribute, this.stringRules)) {
+      return String(value).length;
     } else if (isNumeric(value) && this.hasRule(attribute, this.numericRules)) {
       return parseFloat(typeof value === 'string' ? value.trim() : value, 10);
     } else if (value instanceof File) {
