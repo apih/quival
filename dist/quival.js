@@ -1,5 +1,5 @@
 /*!
- * quival v0.4.0 (https://github.com/apih/quival)
+ * quival v0.4.1 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -1309,7 +1309,9 @@ var quival = (function (exports) {
       this.#implicitAttributes = {};
       this.#stopOnFirstFailure = false;
       this.#alwaysBail = false;
+      this.arrayRules = ['array', 'list'];
       this.fileRules = ['file', 'image', 'mimetypes', 'mimes'];
+      this.stringRules = ['string', 'alpha', 'alpha_dash', 'alpha_num', 'ascii', 'email'];
       this.numericRules = ['decimal', 'numeric', 'integer'];
       this.sizeRules = ['size', 'between', 'min', 'max', 'gt', 'lt', 'gte', 'lte'];
       this.setProperties(data, rules, messages, attributes, values);
@@ -1532,10 +1534,12 @@ var quival = (function (exports) {
       if (!message) {
         let key = rule;
         if (this.sizeRules.includes(key)) {
-          if (Array.isArray(value) || isPlainObject(value) || this.hasRule(attribute, 'array')) {
+          if (Array.isArray(value) || isPlainObject(value) || this.hasRule(attribute, this.arrayRules)) {
             key += '.array';
           } else if (value instanceof File || this.hasRule(attribute, this.fileRules)) {
             key += '.file';
+          } else if (this.hasRule(attribute, this.stringRules)) {
+            key += '.string';
           } else if (isNumeric(value) || this.hasRule(attribute, this.numericRules)) {
             key += '.numeric';
           } else {
@@ -1602,6 +1606,8 @@ var quival = (function (exports) {
     getSize(attribute, value) {
       if (isEmpty(value)) {
         return 0;
+      } else if (this.hasRule(attribute, this.stringRules)) {
+        return String(value).length;
       } else if (isNumeric(value) && this.hasRule(attribute, this.numericRules)) {
         return parseFloat(typeof value === 'string' ? value.trim() : value, 10);
       } else if (value instanceof File) {
