@@ -226,19 +226,37 @@ export default class Validator {
   }
 
   parseAttributeRule(rule) {
+    if (typeof rule === 'function') {
+      return [rule, []];
+    }
+
+    let name, parameters;
+
     if (Array.isArray(rule)) {
-      return [rule[0] ?? '', rule.slice(1)];
-    } else if (typeof rule === 'function') {
-      return [rule, []];
-    }
-
-    const index = rule.indexOf(':');
-
-    if (index === -1) {
-      return [rule, []];
+      name = rule[0] ?? '';
+      parameters = rule.slice(1);
     } else {
-      return [rule.substring(0, index), parseCsvString(rule.substring(index + 1))];
+      const index = rule.indexOf(':');
+
+      if (index === -1) {
+        name = rule;
+        parameters = [];
+      } else {
+        name = rule.substring(0, index);
+        parameters = parseCsvString(rule.substring(index + 1));
+      }
     }
+
+    return [this.normalizeRuleName(name), parameters];
+  }
+
+  normalizeRuleName(name) {
+    return (
+      {
+        int: 'integer',
+        bool: 'boolean',
+      }[name] ?? name
+    );
   }
 
   async validate() {
