@@ -518,7 +518,7 @@ export default class Checkers {
   }
 
   checkConfirmed(attribute, value, parameters) {
-    return this.checkSame(attribute, value, [attribute + '_confirmation']);
+    return this.checkSame(attribute, value, [parameters[0] ?? attribute + '_confirmation']);
   }
 
   checkGt(attribute, value, parameters) {
