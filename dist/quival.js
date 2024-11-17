@@ -1,5 +1,5 @@
 /*!
- * quival v0.4.1 (https://github.com/apih/quival)
+ * quival v0.4.2 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -603,7 +603,7 @@ var quival = (function (exports) {
       return true;
     }
     checkConfirmed(attribute, value, parameters) {
-      return this.checkSame(attribute, value, [attribute + '_confirmation']);
+      return this.checkSame(attribute, value, [parameters[0] ?? attribute + '_confirmation']);
     }
     checkGt(attribute, value, parameters) {
       return this.compareValues(attribute, value, parameters, (val1, val2) => val1 > val2);
@@ -1406,17 +1406,32 @@ var quival = (function (exports) {
       }
     }
     parseAttributeRule(rule) {
+      if (typeof rule === 'function') {
+        return [rule, []];
+      }
+      let name, parameters;
       if (Array.isArray(rule)) {
-        return [rule[0] ?? '', rule.slice(1)];
-      } else if (typeof rule === 'function') {
-        return [rule, []];
-      }
-      const index = rule.indexOf(':');
-      if (index === -1) {
-        return [rule, []];
+        name = rule[0] ?? '';
+        parameters = rule.slice(1);
       } else {
-        return [rule.substring(0, index), parseCsvString(rule.substring(index + 1))];
+        const index = rule.indexOf(':');
+        if (index === -1) {
+          name = rule;
+          parameters = [];
+        } else {
+          name = rule.substring(0, index);
+          parameters = parseCsvString(rule.substring(index + 1));
+        }
       }
+      return [this.normalizeRuleName(name), parameters];
+    }
+    normalizeRuleName(name) {
+      return (
+        {
+          int: 'integer',
+          bool: 'boolean',
+        }[name] ?? name
+      );
     }
     async validate() {
       this.#checkers.clearCaches();
