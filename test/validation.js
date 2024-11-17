@@ -499,6 +499,15 @@ describe('Validation', () => {
       validator.setData({ field: [1, 2, 3] });
       assert(await validator.fails());
     });
+
+    it(`Passes when short name is used`, async () => {
+      const validator = new Validator({}, { field: 'bool' });
+
+      for (const field of [true, false, 0, 1, '0', '1']) {
+        validator.setData({ field });
+        assert(await validator.passes());
+      }
+    });
   });
 
   describe(`Rule 'confirmed'`, () => {
@@ -517,6 +526,11 @@ describe('Validation', () => {
     it(`Fails when the confirmation field is not present`, async () => {
       const validator = new Validator({ field: 'abc' }, rules);
       assert(await validator.fails());
+    });
+
+    it(`Passes when the field is confirmed with custom field name`, async () => {
+      const validator = new Validator({ field: 'abc', fieldConfirmation: 'abc' }, { field: 'confirmed:fieldConfirmation' });
+      assert(await validator.passes());
     });
   });
 
@@ -1363,6 +1377,14 @@ describe('Validation', () => {
 
       validator.setData({ field: [1, 2, 3] });
       assert(await validator.fails());
+    });
+
+    it(`Passes when short name is used`, async () => {
+      const validator = new Validator({ field: 123 }, { field: 'int' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '123' });
+      assert(await validator.passes());
     });
   });
 
