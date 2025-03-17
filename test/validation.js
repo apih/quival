@@ -1311,6 +1311,16 @@ describe('Validation', () => {
       const validator = new Validator({ field: new File('hello.txt', 5 * 1024, 'text/plain') }, rules);
       assert(await validator.fails());
     });
+
+    it(`Passes when the field is an SVG image and the 'allow_svg' flag is set`, async () => {
+      const validator = new Validator({ field: new File('hello.svg', 5 * 1024, 'image/svg+xml') }, { field: 'image:allow_svg' });
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is an SVG image and the 'allow_svg' flag is not set`, async () => {
+      const validator = new Validator({ field: new File('hello.svg', 5 * 1024, 'image/svg+xml') }, { field: 'image' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'in'`, () => {

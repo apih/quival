@@ -711,7 +711,13 @@ export default class Checkers {
   }
 
   async checkImage(attribute, value, parameters) {
-    let result = this.checkMimes(attribute, value, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp']);
+    const mimes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+
+    if (parameters.includes('allow_svg')) {
+      mimes.push('svg');
+    }
+
+    let result = this.checkMimes(attribute, value, mimes);
 
     if (!result || typeof FileReader === 'undefined') {
       return result;
