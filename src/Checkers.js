@@ -39,11 +39,11 @@ export default class Checkers {
     let result = [];
 
     for (const other of parameters) {
-      result.push(this.checkMissing(other));
+      result.push(this.checkMissing(other, this.validator.getValue(other)));
     }
 
     if (callback(result)) {
-      return this.checkMissing(attribute);
+      return this.checkMissing(attribute, value);
     }
 
     return true;
@@ -312,12 +312,12 @@ export default class Checkers {
 
   // Missing
   checkMissing(attribute, value, parameters) {
-    return !this.validator.hasAttribute(attribute);
+    return typeof value === 'undefined';
   }
 
   checkMissingIf(attribute, value, parameters) {
     if (this.isDependent(parameters)) {
-      return this.checkMissing(attribute);
+      return this.checkMissing(attribute, value);
     }
 
     return true;
@@ -325,7 +325,7 @@ export default class Checkers {
 
   checkMissingUnless(attribute, value, parameters) {
     if (!this.isDependent(parameters)) {
-      return this.checkMissing(attribute);
+      return this.checkMissing(attribute, value);
     }
 
     return true;
