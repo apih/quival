@@ -23,10 +23,10 @@
     "url": "https://github.com/apih/quival"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-swc": "^0.4.0",
     "@rollup/plugin-terser": "^0.4.1",
-    "mocha": "^10.2.0",
+    "mocha": "^11.1.0",
     "prettier": "^3.2.5",
     "rollup": "^4.6.1",
     "rollup-plugin-prettier": "^4.1.1"
