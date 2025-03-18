@@ -29,7 +29,7 @@ There are 2 ways to start using `quival` in your project.
 Get the script from [jsDelivr CDN page](https://www.jsdelivr.com/package/npm/quival) and include it in your HTML page.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quival@0.4.x/dist/quival.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quival@0.5.x/dist/quival.min.js"></script>
 ```
 
 Extract `Validator` class from  `quival` global variable, and you are good to go.
