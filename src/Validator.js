@@ -264,7 +264,7 @@ export default class Validator {
     this.#errors = new ErrorBag();
 
     const tasks = [];
-    const skippedAttributes = [];
+    const skippedAttributes = new Set();
 
     for (const [attribute, rules] of Object.entries(this.#rules)) {
       for (const [rule] of rules) {
@@ -285,7 +285,7 @@ export default class Validator {
       const hasRule = (ruleName) => rules.some((rule) => rule[0] === ruleName);
 
       if (hasRule('sometimes') && typeof value === 'undefined') {
-        skippedAttributes.push(attribute);
+        skippedAttributes.add(attribute);
         continue;
       }
 
@@ -301,7 +301,7 @@ export default class Validator {
               !Validator.#implicitRules.includes(rule) &&
               (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
           ) {
-            skippedAttributes.push(attribute);
+            skippedAttributes.add(attribute);
             continue;
           }
 
@@ -366,7 +366,7 @@ export default class Validator {
       this.#errors.sortByKeys(Object.keys(this.#rules));
     }
 
-    this.#skippedAttributes = skippedAttributes.filter((value, index, array) => array.indexOf(value) === index);
+    this.#skippedAttributes = [...skippedAttributes];
 
     return this.#errors;
   }
