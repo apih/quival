@@ -1,5 +1,5 @@
 /*!
- * quival v0.4.2 (https://github.com/apih/quival)
+ * quival v0.5.0 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -240,10 +240,10 @@ var quival = (function (exports) {
     collectMissingsThenTest(attribute, value, parameters, callback) {
       let result = [];
       for (const other of parameters) {
-        result.push(this.checkMissing(other));
+        result.push(this.checkMissing(other, this.validator.getValue(other)));
       }
       if (callback(result)) {
-        return this.checkMissing(attribute);
+        return this.checkMissing(attribute, value);
       }
       return true;
     }
@@ -447,17 +447,17 @@ var quival = (function (exports) {
     }
     // Missing
     checkMissing(attribute, value, parameters) {
-      return !this.validator.hasAttribute(attribute);
+      return typeof value === 'undefined';
     }
     checkMissingIf(attribute, value, parameters) {
       if (this.isDependent(parameters)) {
-        return this.checkMissing(attribute);
+        return this.checkMissing(attribute, value);
       }
       return true;
     }
     checkMissingUnless(attribute, value, parameters) {
       if (!this.isDependent(parameters)) {
-        return this.checkMissing(attribute);
+        return this.checkMissing(attribute, value);
       }
       return true;
     }
@@ -751,7 +751,11 @@ var quival = (function (exports) {
       return this.checkMimes(attribute, value, parameters);
     }
     async checkImage(attribute, value, parameters) {
-      let result = this.checkMimes(attribute, value, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp']);
+      const mimes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+      if (parameters.includes('allow_svg')) {
+        mimes.push('svg');
+      }
+      let result = this.checkMimes(attribute, value, mimes);
       if (!result || typeof FileReader === 'undefined') {
         return result;
       }
@@ -1437,7 +1441,7 @@ var quival = (function (exports) {
       this.#checkers.clearCaches();
       this.#errors = new ErrorBag();
       const tasks = [];
-      const skippedAttributes = [];
+      const skippedAttributes = new Set();
       for (const [attribute, rules] of Object.entries(this.#rules)) {
         for (const [rule] of rules) {
           if (
@@ -1454,7 +1458,7 @@ var quival = (function (exports) {
         let value = this.getValue(attribute);
         const hasRule = (ruleName) => rules.some((rule) => rule[0] === ruleName);
         if (hasRule('sometimes') && typeof value === 'undefined') {
-          skippedAttributes.push(attribute);
+          skippedAttributes.add(attribute);
           continue;
         }
         tasks.push(async () => {
@@ -1468,7 +1472,7 @@ var quival = (function (exports) {
                 !Validator.#implicitRules.includes(rule) &&
                 (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
             ) {
-              skippedAttributes.push(attribute);
+              skippedAttributes.add(attribute);
               continue;
             }
             let result, success, message;
@@ -1520,7 +1524,7 @@ var quival = (function (exports) {
         });
         this.#errors.sortByKeys(Object.keys(this.#rules));
       }
-      this.#skippedAttributes = skippedAttributes.filter((value, index, array) => array.indexOf(value) === index);
+      this.#skippedAttributes = [...skippedAttributes];
       return this.#errors;
     }
     async passes() {
