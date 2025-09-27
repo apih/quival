@@ -136,7 +136,11 @@ export default class Checkers {
     return Array.isArray(value);
   }
 
-  checkBoolean(attribute, value, parameters) {
+  checkBoolean(attribute, value, parameters = []) {
+    if (parameters.includes('strict')) {
+      return [true, false].includes(value);
+    }
+
     return [true, false, 0, 1, '0', '1'].includes(value);
   }
 

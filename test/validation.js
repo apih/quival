@@ -508,6 +508,26 @@ describe('Validation', () => {
         assert(await validator.passes());
       }
     });
+
+    const rules2 = { field: 'boolean:strict' };
+
+    it(`Passes when the field is a boolean in strict mode`, async () => {
+      const validator = new Validator({}, rules2);
+
+      for (const field of [true, false]) {
+        validator.setData({ field });
+        assert(await validator.passes());
+      }
+    });
+
+    it(`Fails when the field is not a boolean in strict mode`, async () => {
+      const validator = new Validator({}, rules2);
+
+      for (const field of [0, 1, '0', '1']) {
+        validator.setData({ field });
+        assert(await validator.fails());
+      }
+    });
   });
 
   describe(`Rule 'confirmed'`, () => {
