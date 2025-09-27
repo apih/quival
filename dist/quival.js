@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.0 (https://github.com/apih/quival)
+ * quival v0.5.1 (https://github.com/apih/quival)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -297,11 +297,11 @@ var quival = (function (exports) {
       return callback(value.getTime(), otherValue.getTime());
     }
     // Type
-    checkArray(attribute, value, parameters) {
+    checkArray(attribute, value, parameters = []) {
       if (!(Array.isArray(value) || isPlainObject(value))) {
         return false;
       }
-      if (parameters && parameters.length > 0) {
+      if (parameters.length > 0) {
         for (const key of Object.keys(value)) {
           if (!parameters.includes(key)) {
             return false;
@@ -313,7 +313,10 @@ var quival = (function (exports) {
     checkList(attribute, value, parameters) {
       return Array.isArray(value);
     }
-    checkBoolean(attribute, value, parameters) {
+    checkBoolean(attribute, value, parameters = []) {
+      if (parameters.includes('strict')) {
+        return [true, false].includes(value);
+      }
       return [true, false, 0, 1, '0', '1'].includes(value);
     }
     checkDate(attribute, value, parameters) {
@@ -322,17 +325,23 @@ var quival = (function (exports) {
     checkFile(attribute, value, parameters) {
       return value instanceof File;
     }
-    checkInteger(attribute, value, parameters) {
-      return String(parseInt(value, 10)) === String(value);
+    checkInteger(attribute, value, parameters = []) {
+      if (!parameters.includes('strict') && typeof value === 'string') {
+        value = parseFloat(value);
+      }
+      return Number.isInteger(value);
     }
-    checkNumeric(attribute, value, parameters) {
+    checkNumeric(attribute, value, parameters = []) {
+      if (parameters.includes('strict')) {
+        return typeof value === 'number';
+      }
       return isNumeric(value);
     }
     checkString(attribute, value, parameters) {
       return typeof value === 'string';
     }
     // Numeric
-    checkDecimal(attribute, value, parameters) {
+    checkDecimal(attribute, value, parameters = []) {
       if (!this.checkNumeric(attribute, value)) {
         return false;
       }
@@ -388,7 +397,7 @@ var quival = (function (exports) {
       value = String(value).replace(/\s/g, '');
       return value.length > 0;
     }
-    checkRequiredArrayKeys(attribute, value, parameters) {
+    checkRequiredArrayKeys(attribute, value, parameters = []) {
       if (!this.checkArray(attribute, value)) {
         return false;
       }
@@ -483,7 +492,7 @@ var quival = (function (exports) {
       }
       return true;
     }
-    checkProhibits(attribute, value, parameters) {
+    checkProhibits(attribute, value, parameters = []) {
       if (this.checkRequired(attribute, value)) {
         for (const parameter of parameters) {
           if (this.checkRequired(parameter, this.validator.getValue(parameter))) {
@@ -564,7 +573,7 @@ var quival = (function (exports) {
     checkUppercase(attribute, value, parameters) {
       return value === String(value).toLocaleUpperCase();
     }
-    checkStartsWith(attribute, value, parameters) {
+    checkStartsWith(attribute, value, parameters = []) {
       value = String(value);
       for (const parameter of parameters) {
         if (value.startsWith(parameter)) {
@@ -576,7 +585,7 @@ var quival = (function (exports) {
     checkDoesntStartWith(attribute, value, parameters) {
       return !this.checkStartsWith(attribute, value, parameters);
     }
-    checkEndsWith(attribute, value, parameters) {
+    checkEndsWith(attribute, value, parameters = []) {
       value = String(value);
       for (const parameter of parameters) {
         if (value.endsWith(parameter)) {
@@ -593,7 +602,7 @@ var quival = (function (exports) {
       const other = this.validator.getValue(parameters[0]);
       return value === other;
     }
-    checkDifferent(attribute, value, parameters) {
+    checkDifferent(attribute, value, parameters = []) {
       for (const parameter of parameters) {
         const other = this.validator.getValue(parameter);
         if (typeof other !== 'undefined' && value === other) {
@@ -663,12 +672,23 @@ var quival = (function (exports) {
       return new RegExp(pattern).test(value);
     }
     // Array / Object
-    checkContains(attribute, value, parameters) {
+    checkContains(attribute, value, parameters = []) {
       if (!this.checkArray(attribute, value)) {
         return false;
       }
       for (const parameter of parameters) {
         if (!value.includes(parameter)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    checkDoesntContain(attribute, value, parameters = []) {
+      if (!this.checkArray(attribute, value)) {
+        return false;
+      }
+      for (const parameter of parameters) {
+        if (value.includes(parameter)) {
           return false;
         }
       }
@@ -735,7 +755,7 @@ var quival = (function (exports) {
       }
       return false;
     }
-    checkMimes(attribute, value, parameters) {
+    checkMimes(attribute, value, parameters = []) {
       if (!this.checkFile(attribute, value)) {
         return false;
       }
@@ -750,7 +770,7 @@ var quival = (function (exports) {
     checkExtensions(attribute, value, parameters) {
       return this.checkMimes(attribute, value, parameters);
     }
-    async checkImage(attribute, value, parameters) {
+    async checkImage(attribute, value, parameters = []) {
       const mimes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
       if (parameters.includes('allow_svg')) {
         mimes.push('svg');
@@ -776,7 +796,7 @@ var quival = (function (exports) {
         });
       return result;
     }
-    async checkDimensions(attribute, value, parameters) {
+    async checkDimensions(attribute, value, parameters = []) {
       if (!this.checkImage(attribute, value) || !Object.hasOwn(this.#imageCache, attribute)) {
         return false;
       }
@@ -1217,6 +1237,9 @@ var quival = (function (exports) {
       return this.replaceRequiredArrayKeys(message, attribute, rule, parameters);
     }
     replaceNotIn(message, attribute, rule, parameters) {
+      return this.replaceRequiredArrayKeys(message, attribute, rule, parameters);
+    }
+    replaceDoesntContain(message, attribute, rule, parameters) {
       return this.replaceRequiredArrayKeys(message, attribute, rule, parameters);
     }
     // File
