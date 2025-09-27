@@ -152,8 +152,12 @@ export default class Checkers {
     return value instanceof File;
   }
 
-  checkInteger(attribute, value, parameters) {
-    return String(parseInt(value, 10)) === String(value);
+  checkInteger(attribute, value, parameters = []) {
+    if (!parameters.includes('strict') && typeof value === 'string') {
+      value = parseFloat(value);
+    }
+
+    return Number.isInteger(value);
   }
 
   checkNumeric(attribute, value, parameters) {

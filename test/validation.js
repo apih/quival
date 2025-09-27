@@ -1412,6 +1412,9 @@ describe('Validation', () => {
     it(`Fails when the field is a decimal`, async () => {
       const validator = new Validator({ field: 123.45 }, rules);
       assert(await validator.fails());
+
+      validator.setData({ field: '123.45' });
+      assert(await validator.fails());
     });
 
     it(`Fails when the field is not a number`, async () => {
@@ -1434,6 +1437,18 @@ describe('Validation', () => {
 
       validator.setData({ field: '123' });
       assert(await validator.passes());
+    });
+
+    const rules2 = { field: 'integer:strict' };
+
+    it(`Passes when the field is an integer in strict mode`, async () => {
+      const validator = new Validator({ field: 123 }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not an integer in strict mode`, async () => {
+      const validator = new Validator({ field: '123' }, rules2);
+      assert(await validator.fails());
     });
   });
 
