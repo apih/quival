@@ -2320,6 +2320,24 @@ describe('Validation', () => {
       validator.setData({ field: [1, 2, 3] });
       assert(await validator.fails());
     });
+
+    const rules2 = { field: 'numeric:strict' };
+
+    it(`Passes when the field is a number in strict mode`, async () => {
+      const validator = new Validator({ field: 123 }, rules2);
+      assert(await validator.passes());
+
+      validator.setData({ field: 123.45 });
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not a number in strict mode`, async () => {
+      const validator = new Validator({ field: '123' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ field: '123.45' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'present'`, () => {

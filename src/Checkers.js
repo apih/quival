@@ -160,7 +160,11 @@ export default class Checkers {
     return Number.isInteger(value);
   }
 
-  checkNumeric(attribute, value, parameters) {
+  checkNumeric(attribute, value, parameters = []) {
+    if (parameters.includes('strict')) {
+      return typeof value === 'number';
+    }
+
     return isNumeric(value);
   }
 
