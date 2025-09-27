@@ -116,12 +116,12 @@ export default class Checkers {
   }
 
   // Type
-  checkArray(attribute, value, parameters) {
+  checkArray(attribute, value, parameters = []) {
     if (!(Array.isArray(value) || isPlainObject(value))) {
       return false;
     }
 
-    if (parameters && parameters.length > 0) {
+    if (parameters.length > 0) {
       for (const key of Object.keys(value)) {
         if (!parameters.includes(key)) {
           return false;
@@ -161,7 +161,7 @@ export default class Checkers {
   }
 
   // Numeric
-  checkDecimal(attribute, value, parameters) {
+  checkDecimal(attribute, value, parameters = []) {
     if (!this.checkNumeric(attribute, value)) {
       return false;
     }
@@ -234,7 +234,7 @@ export default class Checkers {
     return value.length > 0;
   }
 
-  checkRequiredArrayKeys(attribute, value, parameters) {
+  checkRequiredArrayKeys(attribute, value, parameters = []) {
     if (!this.checkArray(attribute, value)) {
       return false;
     }
@@ -360,7 +360,7 @@ export default class Checkers {
     return true;
   }
 
-  checkProhibits(attribute, value, parameters) {
+  checkProhibits(attribute, value, parameters = []) {
     if (this.checkRequired(attribute, value)) {
       for (const parameter of parameters) {
         if (this.checkRequired(parameter, this.validator.getValue(parameter))) {
@@ -466,7 +466,7 @@ export default class Checkers {
     return value === String(value).toLocaleUpperCase();
   }
 
-  checkStartsWith(attribute, value, parameters) {
+  checkStartsWith(attribute, value, parameters = []) {
     value = String(value);
 
     for (const parameter of parameters) {
@@ -482,7 +482,7 @@ export default class Checkers {
     return !this.checkStartsWith(attribute, value, parameters);
   }
 
-  checkEndsWith(attribute, value, parameters) {
+  checkEndsWith(attribute, value, parameters = []) {
     value = String(value);
 
     for (const parameter of parameters) {
@@ -505,7 +505,7 @@ export default class Checkers {
     return value === other;
   }
 
-  checkDifferent(attribute, value, parameters) {
+  checkDifferent(attribute, value, parameters = []) {
     for (const parameter of parameters) {
       const other = this.validator.getValue(parameter);
 
@@ -594,7 +594,7 @@ export default class Checkers {
   }
 
   // Array / Object
-  checkContains(attribute, value, parameters) {
+  checkContains(attribute, value, parameters = []) {
     if (!this.checkArray(attribute, value)) {
       return false;
     }
@@ -690,7 +690,7 @@ export default class Checkers {
     return false;
   }
 
-  checkMimes(attribute, value, parameters) {
+  checkMimes(attribute, value, parameters = []) {
     if (!this.checkFile(attribute, value)) {
       return false;
     }
@@ -710,7 +710,7 @@ export default class Checkers {
     return this.checkMimes(attribute, value, parameters);
   }
 
-  async checkImage(attribute, value, parameters) {
+  async checkImage(attribute, value, parameters = []) {
     const mimes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
 
     if (parameters.includes('allow_svg')) {
@@ -744,7 +744,7 @@ export default class Checkers {
     return result;
   }
 
-  async checkDimensions(attribute, value, parameters) {
+  async checkDimensions(attribute, value, parameters = []) {
     if (!this.checkImage(attribute, value) || !Object.hasOwn(this.#imageCache, attribute)) {
       return false;
     }
