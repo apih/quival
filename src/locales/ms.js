@@ -36,6 +36,7 @@ export default {
   digits_between: 'Medan :attribute mesti mengandungi antara :min dan :max digit.',
   dimensions: 'Medan :attribute mempunyai dimensi imej yang tidak sah.',
   distinct: 'Medan :attribute mempunyai nilai yang berulang.',
+  doesnt_contain: 'Medan :attribute tidak boleh mengandungi salah satu daripada berikut: :values.',
   doesnt_end_with: 'Medan :attribute tidak boleh berakhir dengan salah satu daripada berikut: :values.',
   doesnt_start_with: 'Medan :attribute tidak boleh bermula dengan salah satu daripada berikut: :values.',
   email: 'Medan :attribute mesti alamat emel yang sah.',

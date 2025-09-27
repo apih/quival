@@ -608,6 +608,20 @@ export default class Checkers {
     return true;
   }
 
+  checkDoesntContain(attribute, value, parameters = []) {
+    if (!this.checkArray(attribute, value)) {
+      return false;
+    }
+
+    for (const parameter of parameters) {
+      if (value.includes(parameter)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   checkDistinct(attribute, value, parameters) {
     const unparsed = this.validator.getPrimaryAttribute(attribute);
 

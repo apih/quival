@@ -251,6 +251,10 @@ export default class Replacers {
     return this.replaceRequiredArrayKeys(message, attribute, rule, parameters);
   }
 
+  replaceDoesntContain(message, attribute, rule, parameters) {
+    return this.replaceRequiredArrayKeys(message, attribute, rule, parameters);
+  }
+
   // File
   replaceMimetypes(message, attribute, rule, parameters) {
     return this.replace(message, {

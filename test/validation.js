@@ -842,6 +842,25 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'doesnt_contain'`, () => {
+    const rules = { field: 'doesnt_contain:abc,def' };
+
+    it(`Passes when the field does not contain provided values`, async () => {
+      const validator = new Validator({ field: ['ghi', 'jkl', 'mno'] }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field contains provided values`, async () => {
+      const validator = new Validator({ field: ['def', 'ghi'] }, rules);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is not an array`, async () => {
+      const validator = new Validator({ field: 'abc' }, rules);
+      assert(await validator.fails());
+    });
+  });
+
   describe(`Rule 'doesnt_end_with'`, () => {
     const rules = { field: 'doesnt_end_with:foo,bar' };
 
