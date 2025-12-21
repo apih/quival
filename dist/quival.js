@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.1 (https://github.com/apih/quival)
+ * quival v0.5.2 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -265,7 +265,7 @@ var quival = (function (exports) {
       let otherValue = this.validator.getValue(other);
       if (typeof otherValue === 'undefined') {
         if (isNumeric(other)) {
-          otherValue = parseFloat(other, 10);
+          otherValue = parseFloat(other);
         } else {
           otherValue = null;
         }
@@ -797,7 +797,7 @@ var quival = (function (exports) {
       return result;
     }
     async checkDimensions(attribute, value, parameters = []) {
-      if (!this.checkImage(attribute, value) || !Object.hasOwn(this.#imageCache, attribute)) {
+      if (!(await this.checkImage(attribute, value)) || !Object.hasOwn(this.#imageCache, attribute)) {
         return false;
       }
       const constraints = {};
@@ -914,7 +914,7 @@ var quival = (function (exports) {
           timeZone: value,
         });
       } catch (error) {
-        if (String(error).toLowerCase().includes('invalid time zone')) {
+        if (error instanceof RangeError) {
           return false;
         }
       }
@@ -1047,6 +1047,16 @@ var quival = (function (exports) {
       Object.entries(data).forEach(([key, value]) => (message = message.replaceAll(':' + key, value)));
       return message;
     }
+    replaceCaseVariants(message, data) {
+      Object.entries(data)
+        .flatMap(([key, value]) => [
+          [key, value],
+          [key.toLocaleUpperCase(), value.toLocaleUpperCase()],
+          [key.charAt(0).toLocaleUpperCase() + key.substring(1), value.charAt(0).toLocaleUpperCase() + value.substring(1)],
+        ])
+        .forEach(([key, value]) => (message = message.replaceAll(':' + key, value)));
+      return message;
+    }
     // Numeric
     replaceDecimal(message, attribute, rule, parameters) {
       return this.replace(message, {
@@ -1060,7 +1070,7 @@ var quival = (function (exports) {
     }
     // Agreement
     replaceAcceptedIf(message, attribute, rule, parameters) {
-      return this.replace(message, {
+      return this.replaceCaseVariants(message, {
         other: this.validator.getDisplayableAttribute(parameters[0]),
         value: this.validator.getDisplayableValue(parameters[0], this.validator.getValue(parameters[0])),
       });
@@ -1084,7 +1094,7 @@ var quival = (function (exports) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
     }
     replaceRequiredUnless(message, attribute, rule, parameters) {
-      return this.replace(message, {
+      return this.replaceCaseVariants(message, {
         other: this.validator.getDisplayableAttribute(parameters[0]),
         values: parameters
           .slice(1)
@@ -1093,7 +1103,7 @@ var quival = (function (exports) {
       });
     }
     replaceRequiredWith(message, attribute, rule, parameters) {
-      return this.replace(message, {
+      return this.replaceCaseVariants(message, {
         values: parameters.map((value) => this.validator.getDisplayableAttribute(value)).join(' / '),
       });
     }
@@ -1111,7 +1121,7 @@ var quival = (function (exports) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
     }
     replaceMissingUnless(message, attribute, rule, parameters) {
-      return this.replace(this.replaceRequiredUnless(message, attribute, rule, parameters), {
+      return this.replaceCaseVariants(this.replaceRequiredUnless(message, attribute, rule, parameters), {
         value: this.validator.getDisplayableValue(parameters[0], parameters[1]),
       });
     }
@@ -1129,7 +1139,7 @@ var quival = (function (exports) {
       return this.replaceRequiredUnless(message, attribute, rule, parameters);
     }
     replaceProhibits(message, attribute, rule, parameters) {
-      return this.replace(message, {
+      return this.replaceCaseVariants(message, {
         other: parameters.map((value) => this.validator.getDisplayableAttribute(value)).join(' / '),
       });
     }
@@ -1264,6 +1274,7 @@ var quival = (function (exports) {
       'bail',
       'can',
       'current_password',
+      'encoding',
       'enum',
       'exclude',
       'exclude_if',

@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.1 (https://github.com/apih/quival)
+ * quival v0.5.2 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -50,6 +50,7 @@ this.quival.locales.en = (function () {
     doesnt_end_with: 'The :attribute field must not end with one of the following: :values.',
     doesnt_start_with: 'The :attribute field must not start with one of the following: :values.',
     email: 'The :attribute field must be a valid email address.',
+    encoding: 'The :attribute field must be encoded in :encoding.',
     ends_with: 'The :attribute field must end with one of the following: :values.',
     enum: 'The selected :attribute is invalid.',
     exists: 'The selected :attribute is invalid.',
