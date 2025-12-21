@@ -73,7 +73,7 @@ export default class Checkers {
 
     if (typeof otherValue === 'undefined') {
       if (isNumeric(other)) {
-        otherValue = parseFloat(other, 10);
+        otherValue = parseFloat(other);
       } else {
         otherValue = null;
       }
@@ -771,7 +771,7 @@ export default class Checkers {
   }
 
   async checkDimensions(attribute, value, parameters = []) {
-    if (!this.checkImage(attribute, value) || !Object.hasOwn(this.#imageCache, attribute)) {
+    if (!(await this.checkImage(attribute, value)) || !Object.hasOwn(this.#imageCache, attribute)) {
       return false;
     }
 
@@ -922,7 +922,7 @@ export default class Checkers {
     try {
       Intl.DateTimeFormat(undefined, { timeZone: value });
     } catch (error) {
-      if (String(error).toLowerCase().includes('invalid time zone')) {
+      if (error instanceof RangeError) {
         return false;
       }
     }
