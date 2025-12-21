@@ -13,6 +13,7 @@ export default class Validator {
     'bail',
     'can',
     'current_password',
+    'encoding',
     'enum',
     'exclude',
     'exclude_if',

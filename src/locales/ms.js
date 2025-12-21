@@ -40,6 +40,7 @@ export default {
   doesnt_end_with: 'Medan :attribute tidak boleh berakhir dengan salah satu daripada berikut: :values.',
   doesnt_start_with: 'Medan :attribute tidak boleh bermula dengan salah satu daripada berikut: :values.',
   email: 'Medan :attribute mesti alamat emel yang sah.',
+  encoding: 'Medan :attribute mesti dikodkan dalam :encoding.',
   ends_with: 'Medan :attribute mesti berakhir dengan salah satu daripada berikut: :values.',
   enum: 'Nilai :attribute yang dipilih tidak sah.',
   exists: 'Nilai :attribute yang dipilih tidak sah.',
