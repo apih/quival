@@ -82,4 +82,42 @@ describe('Functionalities', () => {
       val1: ['validation.alpha'],
     });
   });
+
+  it('Convert placeholders to upper and title cases', async () => {
+    const validator = new Validator(
+      {
+        val1: 'foo',
+        val2: 'bar',
+        val3: false,
+        val4: false,
+        val5: '',
+        val6: '',
+      },
+      {
+        val1: 'string|min:5',
+        val2: 'string|min:5',
+        val3: 'accepted_if:val1,foo',
+        val4: 'accepted_if:val2,bar',
+        val5: 'required_with:val1,foo',
+        val6: 'required_with:val2,bar',
+      },
+      {
+        'val1.min': ':Attribute',
+        'val2.min': ':ATTRIBUTE',
+        'val3.accepted_if': ':Other',
+        'val4.accepted_if': ':OTHER',
+        'val5.required_with': ':Attribute :VALUES',
+        'val6.required_with': ':ATTRIBUTE :Values',
+      },
+    );
+
+    assert.deepEqual((await validator.validate()).messages(), {
+      val1: ['Val1'],
+      val2: ['VAL2'],
+      val3: ['Val1'],
+      val4: ['VAL2'],
+      val5: ['Val5 VAL1 / FOO'],
+      val6: ['VAL6 Val2 / bar'],
+    });
+  });
 });
