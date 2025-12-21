@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/apih/quival"
+    "url": "git+https://github.com/apih/quival.git"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.1",
