@@ -11,6 +11,18 @@ export default class Replacers {
     return message;
   }
 
+  replaceCaseVariants(message, data) {
+    Object.entries(data)
+      .flatMap(([key, value]) => [
+        [key, value],
+        [key.toLocaleUpperCase(), value.toLocaleUpperCase()],
+        [key.charAt(0).toLocaleUpperCase() + key.substring(1), value.charAt(0).toLocaleUpperCase() + value.substring(1)],
+      ])
+      .forEach(([key, value]) => (message = message.replaceAll(':' + key, value)));
+
+    return message;
+  }
+
   // Numeric
   replaceDecimal(message, attribute, rule, parameters) {
     return this.replace(message, {
@@ -26,7 +38,7 @@ export default class Replacers {
 
   // Agreement
   replaceAcceptedIf(message, attribute, rule, parameters) {
-    return this.replace(message, {
+    return this.replaceCaseVariants(message, {
       other: this.validator.getDisplayableAttribute(parameters[0]),
       value: this.validator.getDisplayableValue(parameters[0], this.validator.getValue(parameters[0])),
     });
@@ -56,7 +68,7 @@ export default class Replacers {
   }
 
   replaceRequiredUnless(message, attribute, rule, parameters) {
-    return this.replace(message, {
+    return this.replaceCaseVariants(message, {
       other: this.validator.getDisplayableAttribute(parameters[0]),
       values: parameters
         .slice(1)
@@ -66,7 +78,7 @@ export default class Replacers {
   }
 
   replaceRequiredWith(message, attribute, rule, parameters) {
-    return this.replace(message, {
+    return this.replaceCaseVariants(message, {
       values: parameters.map((value) => this.validator.getDisplayableAttribute(value)).join(' / '),
     });
   }
@@ -89,7 +101,7 @@ export default class Replacers {
   }
 
   replaceMissingUnless(message, attribute, rule, parameters) {
-    return this.replace(this.replaceRequiredUnless(message, attribute, rule, parameters), {
+    return this.replaceCaseVariants(this.replaceRequiredUnless(message, attribute, rule, parameters), {
       value: this.validator.getDisplayableValue(parameters[0], parameters[1]),
     });
   }
@@ -112,7 +124,7 @@ export default class Replacers {
   }
 
   replaceProhibits(message, attribute, rule, parameters) {
-    return this.replace(message, {
+    return this.replaceCaseVariants(message, {
       other: parameters.map((value) => this.validator.getDisplayableAttribute(value)).join(' / '),
     });
   }
