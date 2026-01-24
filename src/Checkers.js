@@ -877,7 +877,9 @@ export default class Checkers {
       return false;
     }
 
-    const blocks = String(value).split('.');
+    const blocks = String(value)
+      .split('.')
+      .filter((value) => value !== '');
 
     if (blocks.length !== 4) {
       return false;

@@ -1493,6 +1493,17 @@ describe('Validation', () => {
       validator.setData({ field: '2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF' });
       assert(await validator.fails());
     });
+
+    it(`Fails when the field has empty blocks from consecutive dots`, async () => {
+      let validator = new Validator({ field: '1...1' }, rules);
+      assert(await validator.fails());
+
+      validator = new Validator({ field: '192..168.1' }, rules);
+      assert(await validator.fails());
+
+      validator = new Validator({ field: '...' }, rules);
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'ipv6'`, () => {
