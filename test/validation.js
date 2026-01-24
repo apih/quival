@@ -190,6 +190,14 @@ describe('Validation', () => {
       const validator = new Validator({ field: '2021-12-31', date }, rules2);
       assert(await validator.fails());
     });
+
+    it(`Passes when using date_format with after rule`, async () => {
+      const validator = new Validator({ field: '06/15/2022' }, { field: 'date_format:m/d/Y|after:06/01/2022' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '05/30/2022' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'after_or_equal'`, () => {
@@ -224,6 +232,17 @@ describe('Validation', () => {
 
     it(`Fails when the field is before the other field's value`, async () => {
       const validator = new Validator({ field: '2021-12-31', date }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Passes when using date_format with after_or_equal rule`, async () => {
+      const validator = new Validator({ field: '06/01/2022' }, { field: 'date_format:m/d/Y|after_or_equal:06/01/2022' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '06/15/2022' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '05/30/2022' });
       assert(await validator.fails());
     });
   });
@@ -391,6 +410,14 @@ describe('Validation', () => {
       const validator = new Validator({ field: '2022-01-02', date }, rules2);
       assert(await validator.fails());
     });
+
+    it(`Passes when using date_format with before rule`, async () => {
+      const validator = new Validator({ field: '05/30/2022' }, { field: 'date_format:m/d/Y|before:06/01/2022' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '06/15/2022' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'before_or_equal'`, () => {
@@ -425,6 +452,17 @@ describe('Validation', () => {
 
     it(`Fails when the field is after the other field's value`, async () => {
       const validator = new Validator({ field: '2022-01-02', date }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Passes when using date_format with before_or_equal rule`, async () => {
+      const validator = new Validator({ field: '06/01/2022' }, { field: 'date_format:m/d/Y|before_or_equal:06/01/2022' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '05/30/2022' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '06/15/2022' });
       assert(await validator.fails());
     });
   });
@@ -634,6 +672,17 @@ describe('Validation', () => {
 
     it(`Fails when the field is before the other field's value`, async () => {
       const validator = new Validator({ field: '2021-12-31', date }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Passes when using date_format with date_equals rule`, async () => {
+      const validator = new Validator({ field: '06/01/2022' }, { field: 'date_format:m/d/Y|date_equals:06/01/2022' });
+      assert(await validator.passes());
+
+      validator.setData({ field: '06/15/2022' });
+      assert(await validator.fails());
+
+      validator.setData({ field: '05/30/2022' });
       assert(await validator.fails());
     });
   });
