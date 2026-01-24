@@ -92,6 +92,10 @@ describe('Helpers', () => {
     date3.setSeconds(50);
     date3.setMilliseconds(0);
 
+    assert.deepEqual(parseDate(date1), date1);
+    assert.deepEqual(parseDate(date2), date2);
+    assert.deepEqual(parseDate(date3), date3);
+
     assert.deepEqual(parseDate('11-08-2023'), date1);
     assert.deepEqual(parseDate('11-08-2023 08:40:50'), date2);
     assert.deepEqual(parseDate('11-08-2023 08:40:50 am'), date2);

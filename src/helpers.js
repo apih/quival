@@ -91,10 +91,10 @@ export function parseCsvString(value) {
 }
 
 export function parseDate(value) {
-  if (isEmpty(value) || typeof value !== 'string') {
-    return new Date('');
-  } else if (value instanceof Date) {
+  if (value instanceof Date) {
     return value;
+  } else if (isEmpty(value) || typeof value !== 'string') {
+    return new Date('');
   }
 
   let match, years, months, days, hours, minutes, seconds, meridiem;
