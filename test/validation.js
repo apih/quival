@@ -3065,6 +3065,17 @@ describe('Validation', () => {
       const validator = new Validator({ field: '01GZPCVRPR6K3KOW5B9ESB8PH3' }, rules);
       assert(await validator.fails());
     });
+
+    it(`Fails when the field contains a valid ULID with extra characters`, async () => {
+      let validator = new Validator({ field: 'xxx01GZPCVRPR6K3KQW5B9ESB8PH3' }, rules);
+      assert(await validator.fails());
+
+      validator = new Validator({ field: '01GZPCVRPR6K3KQW5B9ESB8PH3xxx' }, rules);
+      assert(await validator.fails());
+
+      validator = new Validator({ field: 'xxx01GZPCVRPR6K3KQW5B9ESB8PH3xxx' }, rules);
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'uuid'`, () => {
@@ -3077,6 +3088,17 @@ describe('Validation', () => {
 
     it(`Fails when the field is an invalid UUID`, async () => {
       const validator = new Validator({ field: '395dbfe1-3451-x3f0-b295-337c00074099' }, rules);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field contains a valid UUID with extra characters`, async () => {
+      let validator = new Validator({ field: 'xxx395dbfe1-3451-43f0-b295-337c00074099' }, rules);
+      assert(await validator.fails());
+
+      validator = new Validator({ field: '395dbfe1-3451-43f0-b295-337c00074099xxx' }, rules);
+      assert(await validator.fails());
+
+      validator = new Validator({ field: 'xxx395dbfe1-3451-43f0-b295-337c00074099xxx' }, rules);
       assert(await validator.fails());
     });
   });

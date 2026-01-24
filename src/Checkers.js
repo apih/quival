@@ -941,10 +941,10 @@ export default class Checkers {
   }
 
   checkUlid(attribute, value, parameters) {
-    return /[0-7][0-9A-HJKMNP-TV-Z]{25}/.test(value);
+    return /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(value);
   }
 
   checkUuid(attribute, value, parameters) {
-    return /[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/.test(value);
+    return /^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/.test(value);
   }
 }
