@@ -89,9 +89,11 @@ export default class Checkers {
   }
 
   compareDates(attribute, value, parameters, callback) {
-    const rule = this.validator.getRule(attribute);
+    const rules = this.validator.getRule(attribute);
+    const dateFormatRule = Array.isArray(rules) ? rules.find(([name]) => name === 'date_format') : null;
+    const format = dateFormatRule ? dateFormatRule[1][0] : null;
 
-    value = Object.hasOwn(rule, 'date_format') ? parseDateByFormat(value, rule.date_format[0]) : parseDate(value);
+    value = format ? parseDateByFormat(value, format) : parseDate(value);
 
     if (!isValidDate(value)) {
       return false;
@@ -101,11 +103,13 @@ export default class Checkers {
     let otherValue = this.validator.getValue(other);
 
     if (typeof otherValue === 'undefined') {
-      otherValue = parseDate(other);
+      otherValue = format ? parseDateByFormat(other, format) : parseDate(other);
     } else {
-      const otherRule = this.validator.getRule(other);
+      const otherRules = this.validator.getRule(other);
+      const otherDateFormatRule = Array.isArray(otherRules) ? otherRules.find(([name]) => name === 'date_format') : null;
+      const otherFormat = otherDateFormatRule ? otherDateFormatRule[1][0] : null;
 
-      otherValue = Object.hasOwn(otherRule, 'date_format') ? parseDateByFormat(otherValue, otherRule.date_format[0]) : parseDate(otherValue);
+      otherValue = otherFormat ? parseDateByFormat(otherValue, otherFormat) : parseDate(otherValue);
     }
 
     if (!isValidDate(otherValue)) {
