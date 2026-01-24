@@ -54,6 +54,14 @@ describe('Helpers', () => {
     setByPath(obj, 'a.1.c', 5);
 
     assert.deepEqual(obj, { a: [1, { c: 5 }] });
+
+    obj = {};
+    setByPath(obj, 'x', 42);
+    assert.deepEqual(obj, { x: 42 });
+
+    obj = {};
+    setByPath(obj, 'a.b.c', 'deep');
+    assert.deepEqual(obj, { a: { b: { c: 'deep' } } });
   });
 
   it('flattenObject', () => {

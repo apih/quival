@@ -41,7 +41,7 @@ export function setByPath(obj, path, value) {
     current = current[key];
   }
 
-  current[keys.slice(-1)] = value;
+  current[keys.at(-1)] = value;
 }
 
 export function flattenObject(obj, prefix = '') {
