@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.2 (git+https://github.com/apih/quival.git)
+ * quival v0.5.3 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -9,7 +9,7 @@ var quival = (function (exports) {
   function toCamelCase(string) {
     return string
       .replace(/[-_]/g, ' ')
-      .replace(/\s+/, ' ')
+      .replace(/\s+/g, ' ')
       .trim()
       .replace(/(\s\w)/g, (match) => match[1].toUpperCase());
   }
@@ -68,10 +68,10 @@ var quival = (function (exports) {
     return result;
   }
   function parseDate(value) {
-    if (isEmpty(value) || typeof value !== 'string') {
-      return new Date('');
-    } else if (value instanceof Date) {
+    if (value instanceof Date) {
       return value;
+    } else if (isEmpty(value) || typeof value !== 'string') {
+      return new Date('');
     }
     let match, years, months, days, hours, minutes, seconds, meridiem;
     const castToIntegers = (value) => (value && /^\d*$/.test(value) ? parseInt(value) : value);
@@ -278,18 +278,22 @@ var quival = (function (exports) {
       return callback(this.validator.getSize(attribute, value), otherValue);
     }
     compareDates(attribute, value, parameters, callback) {
-      const rule = this.validator.getRule(attribute);
-      value = Object.hasOwn(rule, 'date_format') ? parseDateByFormat(value, rule.date_format[0]) : parseDate(value);
+      const rules = this.validator.getRule(attribute);
+      const dateFormatRule = Array.isArray(rules) ? rules.find(([name]) => name === 'date_format') : null;
+      const format = dateFormatRule ? dateFormatRule[1][0] : null;
+      value = format ? parseDateByFormat(value, format) : parseDate(value);
       if (!isValidDate(value)) {
         return false;
       }
       const other = parameters[0] ?? '';
       let otherValue = this.validator.getValue(other);
       if (typeof otherValue === 'undefined') {
-        otherValue = parseDate(other);
+        otherValue = format ? parseDateByFormat(other, format) : parseDate(other);
       } else {
-        const otherRule = this.validator.getRule(other);
-        otherValue = Object.hasOwn(otherRule, 'date_format') ? parseDateByFormat(otherValue, otherRule.date_format[0]) : parseDate(otherValue);
+        const otherRules = this.validator.getRule(other);
+        const otherDateFormatRule = Array.isArray(otherRules) ? otherRules.find(([name]) => name === 'date_format') : null;
+        const otherFormat = otherDateFormatRule ? otherDateFormatRule[1][0] : null;
+        otherValue = otherFormat ? parseDateByFormat(otherValue, otherFormat) : parseDate(otherValue);
       }
       if (!isValidDate(otherValue)) {
         return false;
@@ -878,7 +882,9 @@ var quival = (function (exports) {
       if (/[^\d.]/.test(value)) {
         return false;
       }
-      const blocks = String(value).split('.');
+      const blocks = String(value)
+        .split('.')
+        .filter((value) => value !== '');
       if (blocks.length !== 4) {
         return false;
       }
@@ -929,10 +935,10 @@ var quival = (function (exports) {
       return true;
     }
     checkUlid(attribute, value, parameters) {
-      return /[0-7][0-9A-HJKMNP-TV-Z]{25}/.test(value);
+      return /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(value);
     }
     checkUuid(attribute, value, parameters) {
-      return /[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/.test(value);
+      return /^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/.test(value);
     }
   }
 
