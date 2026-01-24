@@ -1,7 +1,7 @@
 export function toCamelCase(string) {
   return string
     .replace(/[-_]/g, ' ')
-    .replace(/\s+/, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
     .replace(/(\s\w)/g, (match) => match[1].toUpperCase());
 }

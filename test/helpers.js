@@ -24,6 +24,9 @@ describe('Helpers', () => {
     assert.equal(toCamelCase('-test-name'), 'testName');
     assert.equal(toCamelCase('a test name'), 'aTestName');
     assert.equal(toCamelCase(' test name'), 'testName');
+    assert.equal(toCamelCase('a__test__name'), 'aTestName');
+    assert.equal(toCamelCase('a--test--name'), 'aTestName');
+    assert.equal(toCamelCase('a___test___name'), 'aTestName');
   });
 
   it('toSnakeCase', () => {
