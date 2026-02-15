@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.3 (git+https://github.com/apih/quival.git)
+ * quival v0.5.4 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -126,6 +126,10 @@ this.quival.locales.en = (function () {
       uncompromised: 'The given :attribute has appeared in a data leak. Please choose a different :attribute.',
     },
     present: 'The :attribute field must be present.',
+    present_if: 'The :attribute field must be present when :other is :value.',
+    present_unless: 'The :attribute field must be present unless :other is :value.',
+    present_with: 'The :attribute field must be present when :values is present.',
+    present_with_all: 'The :attribute field must be present when :values are present.',
     prohibited: 'The :attribute field is prohibited.',
     prohibited_if: 'The :attribute field is prohibited when :other is :value.',
     prohibited_unless: 'The :attribute field is prohibited unless :other is in :values.',

@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.3 (git+https://github.com/apih/quival.git)
+ * quival v0.5.4 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -23,7 +23,7 @@ var quival = (function (exports) {
     const keys = path.split('.');
     let current = obj;
     for (const key of keys) {
-      if (!Object.hasOwn(current, key)) {
+      if (current === null || current === undefined || !Object.hasOwn(current, key)) {
         return defaultValue;
       }
       current = current[key];
@@ -98,8 +98,11 @@ var quival = (function (exports) {
     if (years >= 10 && years < 100) {
       years += 2000;
     }
-    if (meridiem.toLowerCase() === 'pm' && hours < 12) {
+    meridiem = meridiem.toLowerCase();
+    if (meridiem === 'pm' && hours < 12) {
       hours += 12;
+    } else if (meridiem === 'am' && hours === 12) {
+      hours = 0;
     }
     return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
   }
@@ -188,8 +191,11 @@ var quival = (function (exports) {
     if (years >= 10 && years < 100) {
       years = years + 2000;
     }
-    if (meridiem.toLowerCase() === 'pm' && hours < 12) {
+    meridiem = meridiem.toLowerCase();
+    if (meridiem === 'pm' && hours < 12) {
       hours += 12;
+    } else if (meridiem === 'am' && hours === 12) {
+      hours = 0;
     }
     return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
   }
@@ -234,6 +240,16 @@ var quival = (function (exports) {
       }
       if (callback(result)) {
         return this.checkRequired(attribute, value);
+      }
+      return true;
+    }
+    collectPresentsThenTest(attribute, value, parameters, callback) {
+      let result = [];
+      for (const other of parameters) {
+        result.push(this.checkPresent(other, this.validator.getValue(other)));
+      }
+      if (callback(result)) {
+        return this.checkPresent(attribute, value);
       }
       return true;
     }
@@ -457,6 +473,24 @@ var quival = (function (exports) {
     }
     checkPresent(attribute, value, parameters) {
       return typeof value !== 'undefined';
+    }
+    checkPresentIf(attribute, value, parameters) {
+      if (this.isDependent(parameters)) {
+        return this.checkPresent(attribute, value);
+      }
+      return true;
+    }
+    checkPresentUnless(attribute, value, parameters) {
+      if (!this.isDependent(parameters)) {
+        return this.checkPresent(attribute, value);
+      }
+      return true;
+    }
+    checkPresentWith(attribute, value, parameters) {
+      return this.collectPresentsThenTest(attribute, value, parameters, (result) => result.includes(true));
+    }
+    checkPresentWithAll(attribute, value, parameters) {
+      return this.collectPresentsThenTest(attribute, value, parameters, (result) => !result.includes(false));
     }
     // Missing
     checkMissing(attribute, value, parameters) {
@@ -884,12 +918,12 @@ var quival = (function (exports) {
       }
       const blocks = String(value)
         .split('.')
-        .filter((value) => value !== '');
+        .map((block) => parseInt(block, 10));
       if (blocks.length !== 4) {
         return false;
       }
       for (const block of blocks) {
-        if (block < 0 || block > 255) {
+        if (isNaN(block) || block < 0 || block > 255) {
           return false;
         }
       }
@@ -1122,14 +1156,27 @@ var quival = (function (exports) {
     replaceRequiredWithoutAll(message, attribute, rule, parameters) {
       return this.replaceRequiredWith(message, attribute, rule, parameters);
     }
+    // Present
+    replacePresentIf(message, attribute, rule, parameters) {
+      return this.replaceAcceptedIf(message, attribute, rule, parameters);
+    }
+    replacePresentUnless(message, attribute, rule, parameters) {
+      return this.replaceCaseVariants(this.replaceRequiredUnless(message, attribute, rule, parameters), {
+        value: this.validator.getDisplayableValue(parameters[0], parameters[1]),
+      });
+    }
+    replacePresentWith(message, attribute, rule, parameters) {
+      return this.replaceRequiredWith(message, attribute, rule, parameters);
+    }
+    replacePresentWithAll(message, attribute, rule, parameters) {
+      return this.replaceRequiredWith(message, attribute, rule, parameters);
+    }
     // Missing
     replaceMissingIf(message, attribute, rule, parameters) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
     }
     replaceMissingUnless(message, attribute, rule, parameters) {
-      return this.replaceCaseVariants(this.replaceRequiredUnless(message, attribute, rule, parameters), {
-        value: this.validator.getDisplayableValue(parameters[0], parameters[1]),
-      });
+      return this.replacePresentUnless(message, attribute, rule, parameters);
     }
     replaceMissingWith(message, attribute, rule, parameters) {
       return this.replaceRequiredWith(message, attribute, rule, parameters);
@@ -1304,6 +1351,10 @@ var quival = (function (exports) {
       'missing_with',
       'missing_with_all',
       'present',
+      'present_if',
+      'present_unless',
+      'present_with',
+      'present_with_all',
       'required',
       'required_if',
       'required_if_accepted',
@@ -1651,14 +1702,17 @@ var quival = (function (exports) {
     getDisplayableValue(attribute, value) {
       attribute = this.getPrimaryAttribute(attribute);
       const path = `${attribute}.${value}`;
-      if (isEmpty(value)) {
-        return 'empty';
-      } else if (typeof value === 'boolean' || this.hasRule(attribute, 'boolean')) {
-        return Number(value) ? 'true' : 'false';
-      } else if (Object.hasOwn(this.#customValues, path)) {
+      if (Object.hasOwn(this.#customValues, path)) {
         return this.#customValues[path];
       } else if (Lang.has(`values.${path}`)) {
         return Lang.get(`values.${path}`);
+      }
+      if (isEmpty(value)) {
+        return 'empty';
+      } else if (Array.isArray(value)) {
+        return 'array';
+      } else if (typeof value === 'boolean' || this.hasRule(attribute, 'boolean')) {
+        return Number(value) ? 'true' : 'false';
       }
       return value;
     }
@@ -1680,7 +1734,7 @@ var quival = (function (exports) {
     }
     getRule(attribute) {
       attribute = this.getPrimaryAttribute(attribute);
-      return this.#rules[attribute] ?? {};
+      return this.#rules[attribute] ?? [];
     }
     hasRule(attribute, rules) {
       attribute = this.getPrimaryAttribute(attribute);
