@@ -525,7 +525,7 @@ export default class Validator {
   getRule(attribute) {
     attribute = this.getPrimaryAttribute(attribute);
 
-    return this.#rules[attribute] ?? {};
+    return this.#rules[attribute] ?? [];
   }
 
   hasRule(attribute, rules) {
