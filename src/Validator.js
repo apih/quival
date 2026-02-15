@@ -483,14 +483,18 @@ export default class Validator {
 
     const path = `${attribute}.${value}`;
 
-    if (isEmpty(value)) {
-      return 'empty';
-    } else if (typeof value === 'boolean' || this.hasRule(attribute, 'boolean')) {
-      return Number(value) ? 'true' : 'false';
-    } else if (Object.hasOwn(this.#customValues, path)) {
+    if (Object.hasOwn(this.#customValues, path)) {
       return this.#customValues[path];
     } else if (Lang.has(`values.${path}`)) {
       return Lang.get(`values.${path}`);
+    }
+
+    if (isEmpty(value)) {
+      return 'empty';
+    } else if (Array.isArray(value)) {
+      return 'array';
+    } else if (typeof value === 'boolean' || this.hasRule(attribute, 'boolean')) {
+      return Number(value) ? 'true' : 'false';
     }
 
     return value;
