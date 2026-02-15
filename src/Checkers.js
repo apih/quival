@@ -921,14 +921,14 @@ export default class Checkers {
 
     const blocks = String(value)
       .split('.')
-      .filter((value) => value !== '');
+      .map((block) => parseInt(block, 10));
 
     if (blocks.length !== 4) {
       return false;
     }
 
     for (const block of blocks) {
-      if (block < 0 || block > 255) {
+      if (isNaN(block) || block < 0 || block > 255) {
         return false;
       }
     }

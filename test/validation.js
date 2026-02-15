@@ -1553,6 +1553,14 @@ describe('Validation', () => {
       validator = new Validator({ field: '...' }, rules);
       assert(await validator.fails());
     });
+
+    it(`Fails when the field has leading or trailing dots`, async () => {
+      let validator = new Validator({ field: '.1.2.3.4' }, rules);
+      assert(await validator.fails());
+
+      validator = new Validator({ field: '1.2.3.4.' }, rules);
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'ipv6'`, () => {
