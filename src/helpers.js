@@ -19,7 +19,7 @@ export function getByPath(obj, path, defaultValue) {
   let current = obj;
 
   for (const key of keys) {
-    if (!Object.hasOwn(current, key)) {
+    if (current === null || current === undefined || !Object.hasOwn(current, key)) {
       return defaultValue;
     }
 

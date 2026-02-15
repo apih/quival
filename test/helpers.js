@@ -42,6 +42,9 @@ describe('Helpers', () => {
   it('getByPath', () => {
     assert.equal(getByPath({ a: { b: 1 } }, 'a.b'), 1);
     assert.equal(getByPath({ a: [1, { c: 2 }] }, 'a.1.c'), 2);
+    assert.equal(getByPath({ a: null }, 'a.b'), undefined);
+    assert.equal(getByPath({ a: undefined }, 'a.b'), undefined);
+    assert.equal(getByPath({ a: null }, 'a.b', 'default'), 'default');
   });
 
   it('setByPath', () => {
