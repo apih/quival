@@ -128,8 +128,12 @@ export function parseDate(value) {
     years += 2000;
   }
 
-  if (meridiem.toLowerCase() === 'pm' && hours < 12) {
+  meridiem = meridiem.toLowerCase();
+
+  if (meridiem === 'pm' && hours < 12) {
     hours += 12;
+  } else if (meridiem === 'am' && hours === 12) {
+    hours = 0;
   }
 
   return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
@@ -235,8 +239,12 @@ export function parseDateByFormat(value, format) {
     years = years + 2000;
   }
 
-  if (meridiem.toLowerCase() === 'pm' && hours < 12) {
+  meridiem = meridiem.toLowerCase();
+
+  if (meridiem === 'pm' && hours < 12) {
     hours += 12;
+  } else if (meridiem === 'am' && hours === 12) {
+    hours = 0;
   }
 
   return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
