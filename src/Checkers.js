@@ -35,6 +35,20 @@ export default class Checkers {
     return true;
   }
 
+  collectPresentsThenTest(attribute, value, parameters, callback) {
+    let result = [];
+
+    for (const other of parameters) {
+      result.push(this.checkPresent(other, this.validator.getValue(other)));
+    }
+
+    if (callback(result)) {
+      return this.checkPresent(attribute, value);
+    }
+
+    return true;
+  }
+
   collectMissingsThenTest(attribute, value, parameters, callback) {
     let result = [];
 
@@ -324,6 +338,30 @@ export default class Checkers {
 
   checkPresent(attribute, value, parameters) {
     return typeof value !== 'undefined';
+  }
+
+  checkPresentIf(attribute, value, parameters) {
+    if (this.isDependent(parameters)) {
+      return this.checkPresent(attribute, value);
+    }
+
+    return true;
+  }
+
+  checkPresentUnless(attribute, value, parameters) {
+    if (!this.isDependent(parameters)) {
+      return this.checkPresent(attribute, value);
+    }
+
+    return true;
+  }
+
+  checkPresentWith(attribute, value, parameters) {
+    return this.collectPresentsThenTest(attribute, value, parameters, (result) => result.includes(true));
+  }
+
+  checkPresentWithAll(attribute, value, parameters) {
+    return this.collectPresentsThenTest(attribute, value, parameters, (result) => !result.includes(false));
   }
 
   // Missing

@@ -2414,6 +2414,162 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'present_if'`, () => {
+    const rules = { field: 'present_if:other,foo,bar' };
+
+    it(`Passes when the field is present and the other field's value is equal to the first value`, async () => {
+      const validator = new Validator({ field: '', other: 'foo' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is present and the other field's value is equal to the second value`, async () => {
+      const validator = new Validator({ field: '', other: 'bar' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is not present and the other field's value is not equal to any value`, async () => {
+      const validator = new Validator({ other: 'bob' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is present and the other field's value is not equal to any value`, async () => {
+      const validator = new Validator({ field: '', other: 'bob' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not present and the other field's value is equal to any value`, async () => {
+      const validator = new Validator({ other: 'foo' }, rules);
+      assert(await validator.fails());
+    });
+
+    const rules2 = { field: ['present_if:other1,foo,bar', 'present_if:other2,win,amp'] };
+
+    it(`Passes when the field is not present and other fields' value are not equal to provided values`, async () => {
+      const validator = new Validator({ other1: 'baz', other2: 'rar' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not present and other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ other1: 'foo', other2: 'win' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is not present and any other fields' value is equal to provided value`, async () => {
+      const validator = new Validator({ other1: 'foo', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ other1: 'baz', other2: 'win' });
+      assert(await validator.fails());
+    });
+  });
+
+  describe(`Rule 'present_unless'`, () => {
+    const rules = { field: 'present_unless:other,foo,bar' };
+
+    it(`Passes when the field is not present and the other field's value is equal to the first value`, async () => {
+      const validator = new Validator({ other: 'foo' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is not present and the other field's value is equal to the second value`, async () => {
+      const validator = new Validator({ other: 'bar' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is present and the other field's value is not equal to any value`, async () => {
+      const validator = new Validator({ field: '', other: 'bob' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not present and the other field's value is not equal to any value`, async () => {
+      const validator = new Validator({ other: 'bob' }, rules);
+      assert(await validator.fails());
+    });
+
+    const rules2 = { field: ['present_unless:other1,foo,bar', 'present_unless:other2,win,amp'] };
+
+    it(`Passes when the field is not present and other fields' value are equal to provided values`, async () => {
+      const validator = new Validator({ other1: 'foo', other2: 'win' }, rules2);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not present and other fields' value are not equal to provided values`, async () => {
+      const validator = new Validator({ other1: 'baz', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is not present and any other fields' value is not equal to provided value`, async () => {
+      const validator = new Validator({ other1: 'foo', other2: 'rar' }, rules2);
+      assert(await validator.fails());
+
+      validator.setData({ other1: 'baz', other2: 'win' });
+      assert(await validator.fails());
+    });
+  });
+
+  describe(`Rule 'present_with'`, () => {
+    const rules = { field: 'present_with:foo,bar' };
+
+    it(`Passes when the field is present and the first other field is present`, async () => {
+      const validator = new Validator({ field: '', foo: 'abc' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is present and the second other field is present`, async () => {
+      const validator = new Validator({ field: '', bar: 123 }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is present and all other fields are not present`, async () => {
+      const validator = new Validator({ field: '' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is not present and all other fields are not present`, async () => {
+      const validator = new Validator({}, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not present and the first other field is present`, async () => {
+      const validator = new Validator({ foo: 'abc' }, rules);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is not present and the second other field is present`, async () => {
+      const validator = new Validator({ bar: 123 }, rules);
+      assert(await validator.fails());
+    });
+  });
+
+  describe(`Rule 'present_with_all'`, () => {
+    const rules = { field: 'present_with_all:foo,bar' };
+
+    it(`Passes when the field is present and all other fields are present`, async () => {
+      const validator = new Validator({ field: '', foo: 'abc', bar: 123 }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is present and any other field is present`, async () => {
+      const validator = new Validator({ field: '', foo: 'abc' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is not present and all other fields are not present`, async () => {
+      const validator = new Validator({}, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is not present and any other field is not present`, async () => {
+      const validator = new Validator({ foo: 'abc' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is not present and all other fields are present`, async () => {
+      const validator = new Validator({ foo: 'abc', bar: 123 }, rules);
+      assert(await validator.fails());
+    });
+  });
+
   describe(`Rule 'prohibited'`, () => {
     const rules = { field: 'prohibited' };
 

@@ -95,15 +95,32 @@ export default class Replacers {
     return this.replaceRequiredWith(message, attribute, rule, parameters);
   }
 
+  // Present
+  replacePresentIf(message, attribute, rule, parameters) {
+    return this.replaceAcceptedIf(message, attribute, rule, parameters);
+  }
+
+  replacePresentUnless(message, attribute, rule, parameters) {
+    return this.replaceCaseVariants(this.replaceRequiredUnless(message, attribute, rule, parameters), {
+      value: this.validator.getDisplayableValue(parameters[0], parameters[1]),
+    });
+  }
+
+  replacePresentWith(message, attribute, rule, parameters) {
+    return this.replaceRequiredWith(message, attribute, rule, parameters);
+  }
+
+  replacePresentWithAll(message, attribute, rule, parameters) {
+    return this.replaceRequiredWith(message, attribute, rule, parameters);
+  }
+
   // Missing
   replaceMissingIf(message, attribute, rule, parameters) {
     return this.replaceAcceptedIf(message, attribute, rule, parameters);
   }
 
   replaceMissingUnless(message, attribute, rule, parameters) {
-    return this.replaceCaseVariants(this.replaceRequiredUnless(message, attribute, rule, parameters), {
-      value: this.validator.getDisplayableValue(parameters[0], parameters[1]),
-    });
+    return this.replacePresentUnless(message, attribute, rule, parameters);
   }
 
   replaceMissingWith(message, attribute, rule, parameters) {
