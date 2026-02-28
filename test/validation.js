@@ -2304,6 +2304,19 @@ describe('Validation', () => {
       validator.setProperties({ field: 58 }, { field: 'multiple_of:11' });
       assert(await validator.fails());
     });
+
+    it(`Passes when decimal value is multiple of decimal parameter`, async () => {
+      const validator = new Validator({ field: 0.3 }, { field: 'multiple_of:0.1' });
+      assert(await validator.passes());
+
+      validator.setProperties({ field: 5 }, { field: 'multiple_of:2.5' });
+      assert(await validator.passes());
+    });
+
+    it(`Fails when decimal value is not multiple of decimal parameter`, async () => {
+      const validator = new Validator({ field: 0.75 }, { field: 'multiple_of:0.5' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'not_in'`, () => {

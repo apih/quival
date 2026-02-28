@@ -244,6 +244,10 @@ export function parseDateByFormat(value, format) {
   return buildDate(years, months, days, hours, minutes, seconds, meridiem);
 }
 
+export function getDecimalPlaces(value) {
+  return (String(value).split('.')[1] ?? '').length;
+}
+
 export function isDigits(value) {
   return String(value).search(/[^0-9]/) === -1;
 }

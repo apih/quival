@@ -1,4 +1,15 @@
-import { escapeRegExp, flattenObject, isDigits, isEmpty, isNumeric, isPlainObject, isValidDate, parseDate, parseDateByFormat } from './helpers.js';
+import {
+  escapeRegExp,
+  flattenObject,
+  getDecimalPlaces,
+  isDigits,
+  isEmpty,
+  isNumeric,
+  isPlainObject,
+  isValidDate,
+  parseDate,
+  parseDateByFormat,
+} from './helpers.js';
 
 export default class Checkers {
   validator;
@@ -210,8 +221,8 @@ export default class Checkers {
       return false;
     }
 
-    const numerator = parseInt(value, 10);
-    const denominator = parseInt(parameters[0], 10);
+    const numerator = Number(value);
+    const denominator = Number(parameters[0]);
 
     if (numerator === 0 && denominator === 0) {
       return false;
@@ -221,7 +232,10 @@ export default class Checkers {
       return false;
     }
 
-    return numerator % denominator === 0;
+    const decimalPlaces = Math.max(getDecimalPlaces(numerator), getDecimalPlaces(denominator));
+    const factor = 10 ** decimalPlaces;
+
+    return Math.round(numerator * factor) % Math.round(denominator * factor) === 0;
   }
 
   // Agreement
