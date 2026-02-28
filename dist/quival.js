@@ -1,11 +1,26 @@
 /*!
- * quival v0.5.4 (git+https://github.com/apih/quival.git)
+ * quival v0.5.5 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
 var quival = (function (exports) {
   'use strict';
 
+  const castToIntegers = (value) => (value && /^\d*$/.test(value) ? parseInt(value) : value);
+  const buildDate = (years, months, days, hours, minutes, seconds, meridiem) => {
+    if (years >= 10 && years < 100) {
+      years += 2000;
+    }
+    if (meridiem !== null) {
+      meridiem = meridiem.toLowerCase();
+      if (meridiem === 'pm' && hours < 12) {
+        hours += 12;
+      } else if (meridiem === 'am' && hours === 12) {
+        hours = 0;
+      }
+    }
+    return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
+  };
   function toCamelCase(string) {
     return string
       .replace(/[-_]/g, ' ')
@@ -74,37 +89,27 @@ var quival = (function (exports) {
       return new Date('');
     }
     let match, years, months, days, hours, minutes, seconds, meridiem;
-    const castToIntegers = (value) => (value && /^\d*$/.test(value) ? parseInt(value) : value);
     if ((match = value.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})\s?((\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?)?/i)) !== null) {
-      [, days, months, years, , hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+      [, days, months, years, , hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
     } else if (
       (match = value.match(/^(\d{2,4})[.\/-](\d{1,2})[.\/-](\d{1,2})\s?((\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?)?/i)) !== null ||
       (match = value.match(/^(\d{4})(\d{2})(\d{2})\s?((\d{2})(\d{2})((\d{2}))?\s?(am|pm)?)?/i)) !== null
     ) {
-      [, years, months, days, , hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+      [, years, months, days, , hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
     } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{4})[.\/-](\d{2})[.\/-](\d{2})/i))) {
-      [, hours, minutes, , seconds, meridiem = 'am', years, months, days] = match.map(castToIntegers);
+      [, hours, minutes, , seconds, meridiem = null, years, months, days] = match.map(castToIntegers);
     } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{2})[.\/-](\d{2})[.\/-](\d{4})/i))) {
-      [, hours, minutes, , seconds, meridiem = 'am', days, months, years] = match.map(castToIntegers);
+      [, hours, minutes, , seconds, meridiem = null, days, months, years] = match.map(castToIntegers);
     } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?/i))) {
       const current = new Date();
       years = current.getFullYear();
       months = current.getMonth() + 1;
       days = current.getDate();
-      [, hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+      [, hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
     } else {
       return new Date(value);
     }
-    if (years >= 10 && years < 100) {
-      years += 2000;
-    }
-    meridiem = meridiem.toLowerCase();
-    if (meridiem === 'pm' && hours < 12) {
-      hours += 12;
-    } else if (meridiem === 'am' && hours === 12) {
-      hours = 0;
-    }
-    return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
+    return buildDate(years, months, days, hours, minutes, seconds, meridiem);
   }
   function parseDateByFormat(value, format) {
     if (isEmpty(value)) {
@@ -165,7 +170,7 @@ var quival = (function (exports) {
     if (match === null) {
       return new Date('');
     }
-    match = match.map((value) => (value && /^\d*$/.test(value) ? parseInt(value) : value));
+    match = match.map(castToIntegers);
     const current = new Date();
     let years = match[indices.years];
     let months = match[indices.months];
@@ -173,7 +178,7 @@ var quival = (function (exports) {
     let hours = match[indices.hours] ?? 0;
     let minutes = match[indices.minutes] ?? 0;
     let seconds = match[indices.seconds] ?? 0;
-    let meridiem = match[indices.meridiem] ?? 'am';
+    let meridiem = match[indices.meridiem] ?? null;
     if (!years && !months && !days) {
       years = current.getFullYear();
       months = current.getMonth() + 1;
@@ -188,16 +193,10 @@ var quival = (function (exports) {
       years = current.getFullYear();
       months = current.getMonth() + 1;
     }
-    if (years >= 10 && years < 100) {
-      years = years + 2000;
-    }
-    meridiem = meridiem.toLowerCase();
-    if (meridiem === 'pm' && hours < 12) {
-      hours += 12;
-    } else if (meridiem === 'am' && hours === 12) {
-      hours = 0;
-    }
-    return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
+    return buildDate(years, months, days, hours, minutes, seconds, meridiem);
+  }
+  function getDecimalPlaces(value) {
+    return (String(value).split('.')[1] ?? '').length;
   }
   function isDigits(value) {
     return String(value).search(/[^0-9]/) === -1;
@@ -375,8 +374,8 @@ var quival = (function (exports) {
       if (!isNumeric(value) || !isNumeric(parameters[0])) {
         return false;
       }
-      const numerator = parseInt(value, 10);
-      const denominator = parseInt(parameters[0], 10);
+      const numerator = Number(value);
+      const denominator = Number(parameters[0]);
       if (numerator === 0 && denominator === 0) {
         return false;
       } else if (numerator === 0) {
@@ -384,7 +383,9 @@ var quival = (function (exports) {
       } else if (denominator === 0) {
         return false;
       }
-      return numerator % denominator === 0;
+      const decimalPlaces = Math.max(getDecimalPlaces(numerator), getDecimalPlaces(denominator));
+      const factor = 10 ** decimalPlaces;
+      return Math.round(numerator * factor) % Math.round(denominator * factor) === 0;
     }
     // Agreement
     checkAccepted(attribute, value, parameters) {
