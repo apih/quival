@@ -1,3 +1,23 @@
+const castToIntegers = (value) => (value && /^\d*$/.test(value) ? parseInt(value) : value);
+
+const buildDate = (years, months, days, hours, minutes, seconds, meridiem) => {
+  if (years >= 10 && years < 100) {
+    years += 2000;
+  }
+
+  if (meridiem !== null) {
+    meridiem = meridiem.toLowerCase();
+
+    if (meridiem === 'pm' && hours < 12) {
+      hours += 12;
+    } else if (meridiem === 'am' && hours === 12) {
+      hours = 0;
+    }
+  }
+
+  return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
+};
+
 export function toCamelCase(string) {
   return string
     .replace(/[-_]/g, ' ')
@@ -99,8 +119,6 @@ export function parseDate(value) {
 
   let match, years, months, days, hours, minutes, seconds, meridiem;
 
-  const castToIntegers = (value) => (value && /^\d*$/.test(value) ? parseInt(value) : value);
-
   if ((match = value.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})\s?((\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?)?/i)) !== null) {
     [, days, months, years, , hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
   } else if (
@@ -124,21 +142,7 @@ export function parseDate(value) {
     return new Date(value);
   }
 
-  if (years >= 10 && years < 100) {
-    years += 2000;
-  }
-
-  if (meridiem !== null) {
-    meridiem = meridiem.toLowerCase();
-
-    if (meridiem === 'pm' && hours < 12) {
-      hours += 12;
-    } else if (meridiem === 'am' && hours === 12) {
-      hours = 0;
-    }
-  }
-
-  return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
+  return buildDate(years, months, days, hours, minutes, seconds, meridiem);
 }
 
 export function parseDateByFormat(value, format) {
@@ -210,7 +214,7 @@ export function parseDateByFormat(value, format) {
     return new Date('');
   }
 
-  match = match.map((value) => (value && /^\d*$/.test(value) ? parseInt(value) : value));
+  match = match.map(castToIntegers);
 
   const current = new Date();
 
@@ -237,21 +241,7 @@ export function parseDateByFormat(value, format) {
     months = current.getMonth() + 1;
   }
 
-  if (years >= 10 && years < 100) {
-    years = years + 2000;
-  }
-
-  if (meridiem !== null) {
-    meridiem = meridiem.toLowerCase();
-
-    if (meridiem === 'pm' && hours < 12) {
-      hours += 12;
-    } else if (meridiem === 'am' && hours === 12) {
-      hours = 0;
-    }
-  }
-
-  return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
+  return buildDate(years, months, days, hours, minutes, seconds, meridiem);
 }
 
 export function isDigits(value) {
