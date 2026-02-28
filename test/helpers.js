@@ -137,6 +137,11 @@ describe('Helpers', () => {
     assert.deepEqual(parseDate('2023-08-11 12:30:00 am'), date4);
     assert.deepEqual(parseDate('11-08-2023 12:30:00 am'), date4);
     assert.deepEqual(parseDate('12:30:00 am 2023-08-11'), date4);
+
+    const date5 = new Date('2026/01/03 12:10:17');
+    assert.deepEqual(parseDate('2026-01-03 12:10:17'), date5);
+    assert.deepEqual(parseDate('03-01-2026 12:10:17'), date5);
+    assert.deepEqual(parseDate('12:10:17 2026-01-03'), date5);
   });
 
   it('parseDateByFormat', () => {
@@ -157,6 +162,9 @@ describe('Helpers', () => {
 
     const date4 = new Date('2023/08/11 00:30:00');
     assert.deepEqual(parseDateByFormat('08-11-2023 12:30:00 am', 'm-d-Y H:i:s a'), date4);
+
+    const date5 = new Date('2026/01/03 12:10:17');
+    assert.deepEqual(parseDateByFormat('01-03-2026 12:10:17', 'm-d-Y H:i:s'), date5);
   });
 
   it('isDigits', () => {

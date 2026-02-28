@@ -102,16 +102,16 @@ export function parseDate(value) {
   const castToIntegers = (value) => (value && /^\d*$/.test(value) ? parseInt(value) : value);
 
   if ((match = value.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})\s?((\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?)?/i)) !== null) {
-    [, days, months, years, , hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+    [, days, months, years, , hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
   } else if (
     (match = value.match(/^(\d{2,4})[.\/-](\d{1,2})[.\/-](\d{1,2})\s?((\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?)?/i)) !== null ||
     (match = value.match(/^(\d{4})(\d{2})(\d{2})\s?((\d{2})(\d{2})((\d{2}))?\s?(am|pm)?)?/i)) !== null
   ) {
-    [, years, months, days, , hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+    [, years, months, days, , hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
   } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{4})[.\/-](\d{2})[.\/-](\d{2})/i))) {
-    [, hours, minutes, , seconds, meridiem = 'am', years, months, days] = match.map(castToIntegers);
+    [, hours, minutes, , seconds, meridiem = null, years, months, days] = match.map(castToIntegers);
   } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{2})[.\/-](\d{2})[.\/-](\d{4})/i))) {
-    [, hours, minutes, , seconds, meridiem = 'am', days, months, years] = match.map(castToIntegers);
+    [, hours, minutes, , seconds, meridiem = null, days, months, years] = match.map(castToIntegers);
   } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?/i))) {
     const current = new Date();
 
@@ -119,7 +119,7 @@ export function parseDate(value) {
     months = current.getMonth() + 1;
     days = current.getDate();
 
-    [, hours = 0, minutes = 0, , seconds = 0, meridiem = 'am'] = match.map(castToIntegers);
+    [, hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
   } else {
     return new Date(value);
   }
@@ -128,12 +128,14 @@ export function parseDate(value) {
     years += 2000;
   }
 
-  meridiem = meridiem.toLowerCase();
+  if (meridiem !== null) {
+    meridiem = meridiem.toLowerCase();
 
-  if (meridiem === 'pm' && hours < 12) {
-    hours += 12;
-  } else if (meridiem === 'am' && hours === 12) {
-    hours = 0;
+    if (meridiem === 'pm' && hours < 12) {
+      hours += 12;
+    } else if (meridiem === 'am' && hours === 12) {
+      hours = 0;
+    }
   }
 
   return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
@@ -218,7 +220,7 @@ export function parseDateByFormat(value, format) {
   let hours = match[indices.hours] ?? 0;
   let minutes = match[indices.minutes] ?? 0;
   let seconds = match[indices.seconds] ?? 0;
-  let meridiem = match[indices.meridiem] ?? 'am';
+  let meridiem = match[indices.meridiem] ?? null;
 
   if (!years && !months && !days) {
     years = current.getFullYear();
@@ -239,12 +241,14 @@ export function parseDateByFormat(value, format) {
     years = years + 2000;
   }
 
-  meridiem = meridiem.toLowerCase();
+  if (meridiem !== null) {
+    meridiem = meridiem.toLowerCase();
 
-  if (meridiem === 'pm' && hours < 12) {
-    hours += 12;
-  } else if (meridiem === 'am' && hours === 12) {
-    hours = 0;
+    if (meridiem === 'pm' && hours < 12) {
+      hours += 12;
+    } else if (meridiem === 'am' && hours === 12) {
+      hours = 0;
+    }
   }
 
   return new Date(`${years}-${months}-${days} ${hours}:${minutes}:${seconds}`);
