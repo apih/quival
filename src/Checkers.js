@@ -33,46 +33,22 @@ export default class Checkers {
     return parameters.slice(1).some((value) => value == other);
   }
 
+  collectAndTest(checker, attribute, value, parameters, callback) {
+    const result = parameters.map((other) => checker(other, this.validator.getValue(other)));
+
+    return callback(result) ? checker(attribute, value) : true;
+  }
+
   collectRequiredsThenTest(attribute, value, parameters, callback) {
-    let result = [];
-
-    for (const other of parameters) {
-      result.push(this.checkRequired(other, this.validator.getValue(other)));
-    }
-
-    if (callback(result)) {
-      return this.checkRequired(attribute, value);
-    }
-
-    return true;
+    return this.collectAndTest(this.checkRequired, attribute, value, parameters, callback);
   }
 
   collectPresentsThenTest(attribute, value, parameters, callback) {
-    let result = [];
-
-    for (const other of parameters) {
-      result.push(this.checkPresent(other, this.validator.getValue(other)));
-    }
-
-    if (callback(result)) {
-      return this.checkPresent(attribute, value);
-    }
-
-    return true;
+    return this.collectAndTest(this.checkPresent, attribute, value, parameters, callback);
   }
 
   collectMissingsThenTest(attribute, value, parameters, callback) {
-    let result = [];
-
-    for (const other of parameters) {
-      result.push(this.checkMissing(other, this.validator.getValue(other)));
-    }
-
-    if (callback(result)) {
-      return this.checkMissing(attribute, value);
-    }
-
-    return true;
+    return this.collectAndTest(this.checkMissing, attribute, value, parameters, callback);
   }
 
   testStringUsingRegex(attribute, value, asciiRegex, unicodeRegex, isAscii = false) {
