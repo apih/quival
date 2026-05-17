@@ -1,4 +1,5 @@
 import {
+  DATE_FORMAT_PATTERNS,
   escapeRegExp,
   flattenObject,
   getDecimalPlaces,
@@ -629,28 +630,11 @@ export default class Checkers {
   checkDateFormat(attribute, value, parameters) {
     const format = parameters[0].split('');
 
-    const formats = {
-      Y: '(\\d{4})',
-      y: '(\\d{2})',
-      m: '(\\d{2})',
-      n: '([1-9]\\d?)',
-      d: '(\\d{2})',
-      j: '([1-9]\\d?)',
-      G: '([1-9]\\d?)',
-      g: '([1-9]\\d?)',
-      H: '(\\d{2})',
-      h: '(\\d{2})',
-      i: '(\\d{2})',
-      s: '(\\d{2})',
-      A: '(AM|PM)',
-      a: '(am|pm)',
-    };
-
     let pattern = '^';
 
     for (const char of format) {
-      if (Object.hasOwn(formats, char)) {
-        pattern += formats[char];
+      if (Object.hasOwn(DATE_FORMAT_PATTERNS, char)) {
+        pattern += DATE_FORMAT_PATTERNS[char];
       } else {
         pattern += '\\' + char;
       }

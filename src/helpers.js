@@ -145,29 +145,29 @@ export function parseDate(value) {
   return buildDate(years, months, days, hours, minutes, seconds, meridiem);
 }
 
+export const DATE_FORMAT_PATTERNS = {
+  Y: '(\\d{4})',
+  y: '(\\d{2})',
+  m: '(\\d{2})',
+  n: '([1-9]\\d?)',
+  d: '(\\d{2})',
+  j: '([1-9]\\d?)',
+  G: '([1-9]\\d?)',
+  g: '([1-9]\\d?)',
+  H: '(\\d{2})',
+  h: '(\\d{2})',
+  i: '(\\d{2})',
+  s: '(\\d{2})',
+  A: '(AM|PM)',
+  a: '(am|pm)',
+};
+
 export function parseDateByFormat(value, format) {
   if (isEmpty(value)) {
     return new Date('');
   }
 
   format = format.split('');
-
-  const formats = {
-    Y: '(\\d{4})',
-    y: '(\\d{2})',
-    m: '(\\d{2})',
-    n: '([1-9]\\d?)',
-    d: '(\\d{2})',
-    j: '([1-9]\\d?)',
-    G: '([1-9]\\d?)',
-    g: '([1-9]\\d?)',
-    H: '(\\d{2})',
-    h: '(\\d{2})',
-    i: '(\\d{2})',
-    s: '(\\d{2})',
-    A: '(AM|PM)',
-    a: '(am|pm)',
-  };
 
   let pattern = '^';
   let indices = {
@@ -183,8 +183,8 @@ export function parseDateByFormat(value, format) {
   let index = 1;
 
   for (const char of format) {
-    if (Object.hasOwn(formats, char)) {
-      pattern += formats[char];
+    if (Object.hasOwn(DATE_FORMAT_PATTERNS, char)) {
+      pattern += DATE_FORMAT_PATTERNS[char];
 
       if (['Y', 'y'].indexOf(char) !== -1) {
         indices.years = index++;
