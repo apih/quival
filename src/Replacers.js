@@ -13,11 +13,15 @@ export default class Replacers {
 
   replaceCaseVariants(message, data) {
     Object.entries(data)
-      .flatMap(([key, value]) => [
-        [key, value],
-        [key.toLocaleUpperCase(), value.toLocaleUpperCase()],
-        [key.charAt(0).toLocaleUpperCase() + key.substring(1), value.charAt(0).toLocaleUpperCase() + value.substring(1)],
-      ])
+      .flatMap(([key, value]) => {
+        value = String(value);
+
+        return [
+          [key, value],
+          [key.toLocaleUpperCase(), value.toLocaleUpperCase()],
+          [key.charAt(0).toLocaleUpperCase() + key.substring(1), value.charAt(0).toLocaleUpperCase() + value.substring(1)],
+        ];
+      })
       .forEach(([key, value]) => (message = message.replaceAll(':' + key, value)));
 
     return message;
@@ -221,7 +225,7 @@ export default class Replacers {
     const value = this.validator.getValue(parameters[0]);
 
     return this.replace(message, {
-      value: value ? this.validator.getSize(parameters[0], value) : this.validator.getDisplayableAttribute(parameters[0]),
+      value: typeof value === 'undefined' ? this.validator.getDisplayableAttribute(parameters[0]) : this.validator.getSize(parameters[0], value),
     });
   }
 
