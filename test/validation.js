@@ -598,16 +598,27 @@ describe('Validation', () => {
     it(`Passes when the field contains required values`, async () => {
       const validator = new Validator({ field: ['abc', 'def', 'ghi'] }, rules);
       assert(await validator.passes());
+
+      validator.setData({ field: { x: 'abc', y: 'def', z: 'ghi' } });
+      assert(await validator.passes());
     });
 
     it(`Fails when the field does not contain required values`, async () => {
       const validator = new Validator({ field: ['def', 'ghi'] }, rules);
+      assert(await validator.fails());
+
+      validator.setData({ field: { y: 'def', z: 'ghi' } });
       assert(await validator.fails());
     });
 
     it(`Fails when the field is not an array`, async () => {
       const validator = new Validator({ field: 'abc' }, rules);
       assert(await validator.fails());
+    });
+
+    it(`Passes when the field contains numeric values matching string parameters`, async () => {
+      const validator = new Validator({ field: [1, 2, 3] }, { field: 'contains:1,2' });
+      assert(await validator.passes());
     });
   });
 
@@ -917,15 +928,26 @@ describe('Validation', () => {
     it(`Passes when the field does not contain provided values`, async () => {
       const validator = new Validator({ field: ['ghi', 'jkl', 'mno'] }, rules);
       assert(await validator.passes());
+
+      validator.setData({ field: { x: 'ghi', y: 'jkl', z: 'mno' } });
+      assert(await validator.passes());
     });
 
     it(`Fails when the field contains provided values`, async () => {
       const validator = new Validator({ field: ['def', 'ghi'] }, rules);
       assert(await validator.fails());
+
+      validator.setData({ field: { y: 'def', z: 'ghi' } });
+      assert(await validator.fails());
     });
 
     it(`Fails when the field is not an array`, async () => {
       const validator = new Validator({ field: 'abc' }, rules);
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field contains numeric values matching string parameters`, async () => {
+      const validator = new Validator({ field: [1, 2, 3] }, { field: 'doesnt_contain:1,9' });
       assert(await validator.fails());
     });
   });

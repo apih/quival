@@ -651,8 +651,10 @@ export default class Checkers {
       return false;
     }
 
+    const values = Array.isArray(value) ? value : Object.values(value);
+
     for (const parameter of parameters) {
-      if (!value.includes(parameter)) {
+      if (!values.some((item) => item == parameter)) {
         return false;
       }
     }
@@ -665,8 +667,10 @@ export default class Checkers {
       return false;
     }
 
+    const values = Array.isArray(value) ? value : Object.values(value);
+
     for (const parameter of parameters) {
-      if (value.includes(parameter)) {
+      if (values.some((item) => item == parameter)) {
         return false;
       }
     }
