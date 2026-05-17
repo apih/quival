@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.5 (git+https://github.com/apih/quival.git)
+ * quival v0.5.6 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -111,27 +111,27 @@ var quival = (function (exports) {
     }
     return buildDate(years, months, days, hours, minutes, seconds, meridiem);
   }
+  const DATE_FORMAT_PATTERNS = {
+    Y: '(\\d{4})',
+    y: '(\\d{2})',
+    m: '(\\d{2})',
+    n: '([1-9]\\d?)',
+    d: '(\\d{2})',
+    j: '([1-9]\\d?)',
+    G: '([1-9]\\d?)',
+    g: '([1-9]\\d?)',
+    H: '(\\d{2})',
+    h: '(\\d{2})',
+    i: '(\\d{2})',
+    s: '(\\d{2})',
+    A: '(AM|PM)',
+    a: '(am|pm)',
+  };
   function parseDateByFormat(value, format) {
     if (isEmpty(value)) {
       return new Date('');
     }
     format = format.split('');
-    const formats = {
-      Y: '(\\d{4})',
-      y: '(\\d{2})',
-      m: '(\\d{2})',
-      n: '([1-9]\\d?)',
-      d: '(\\d{2})',
-      j: '([1-9]\\d?)',
-      G: '([1-9]\\d?)',
-      g: '([1-9]\\d?)',
-      H: '(\\d{2})',
-      h: '(\\d{2})',
-      i: '(\\d{2})',
-      s: '(\\d{2})',
-      A: '(AM|PM)',
-      a: '(am|pm)',
-    };
     let pattern = '^';
     let indices = {
       years: -1,
@@ -144,8 +144,8 @@ var quival = (function (exports) {
     };
     let index = 1;
     for (const char of format) {
-      if (Object.hasOwn(formats, char)) {
-        pattern += formats[char];
+      if (Object.hasOwn(DATE_FORMAT_PATTERNS, char)) {
+        pattern += DATE_FORMAT_PATTERNS[char];
         if (['Y', 'y'].indexOf(char) !== -1) {
           indices.years = index++;
         } else if (['m', 'n'].indexOf(char) !== -1) {
@@ -232,35 +232,18 @@ var quival = (function (exports) {
       const other = this.validator.getValue(parameters[0]);
       return parameters.slice(1).some((value) => value == other);
     }
+    collectAndTest(checker, attribute, value, parameters, callback) {
+      const result = parameters.map((other) => checker(other, this.validator.getValue(other)));
+      return callback(result) ? checker(attribute, value) : true;
+    }
     collectRequiredsThenTest(attribute, value, parameters, callback) {
-      let result = [];
-      for (const other of parameters) {
-        result.push(this.checkRequired(other, this.validator.getValue(other)));
-      }
-      if (callback(result)) {
-        return this.checkRequired(attribute, value);
-      }
-      return true;
+      return this.collectAndTest(this.checkRequired, attribute, value, parameters, callback);
     }
     collectPresentsThenTest(attribute, value, parameters, callback) {
-      let result = [];
-      for (const other of parameters) {
-        result.push(this.checkPresent(other, this.validator.getValue(other)));
-      }
-      if (callback(result)) {
-        return this.checkPresent(attribute, value);
-      }
-      return true;
+      return this.collectAndTest(this.checkPresent, attribute, value, parameters, callback);
     }
     collectMissingsThenTest(attribute, value, parameters, callback) {
-      let result = [];
-      for (const other of parameters) {
-        result.push(this.checkMissing(other, this.validator.getValue(other)));
-      }
-      if (callback(result)) {
-        return this.checkMissing(attribute, value);
-      }
-      return true;
+      return this.collectAndTest(this.checkMissing, attribute, value, parameters, callback);
     }
     testStringUsingRegex(attribute, value, asciiRegex, unicodeRegex, isAscii = false) {
       if (typeof value !== 'string' && typeof value !== 'number') {
@@ -346,7 +329,7 @@ var quival = (function (exports) {
     }
     checkInteger(attribute, value, parameters = []) {
       if (!parameters.includes('strict') && typeof value === 'string') {
-        value = parseFloat(value);
+        value = Number(value);
       }
       return Number.isInteger(value);
     }
@@ -683,26 +666,10 @@ var quival = (function (exports) {
     }
     checkDateFormat(attribute, value, parameters) {
       const format = parameters[0].split('');
-      const formats = {
-        Y: '(\\d{4})',
-        y: '(\\d{2})',
-        m: '(\\d{2})',
-        n: '([1-9]\\d?)',
-        d: '(\\d{2})',
-        j: '([1-9]\\d?)',
-        G: '([1-9]\\d?)',
-        g: '([1-9]\\d?)',
-        H: '(\\d{2})',
-        h: '(\\d{2})',
-        i: '(\\d{2})',
-        s: '(\\d{2})',
-        A: '(AM|PM)',
-        a: '(am|pm)',
-      };
       let pattern = '^';
       for (const char of format) {
-        if (Object.hasOwn(formats, char)) {
-          pattern += formats[char];
+        if (Object.hasOwn(DATE_FORMAT_PATTERNS, char)) {
+          pattern += DATE_FORMAT_PATTERNS[char];
         } else {
           pattern += '\\' + char;
         }
@@ -715,8 +682,9 @@ var quival = (function (exports) {
       if (!this.checkArray(attribute, value)) {
         return false;
       }
+      const values = Array.isArray(value) ? value : Object.values(value);
       for (const parameter of parameters) {
-        if (!value.includes(parameter)) {
+        if (!values.some((item) => item == parameter)) {
           return false;
         }
       }
@@ -726,8 +694,9 @@ var quival = (function (exports) {
       if (!this.checkArray(attribute, value)) {
         return false;
       }
+      const values = Array.isArray(value) ? value : Object.values(value);
       for (const parameter of parameters) {
-        if (value.includes(parameter)) {
+        if (values.some((item) => item == parameter)) {
           return false;
         }
       }
@@ -843,10 +812,10 @@ var quival = (function (exports) {
       for (const parameter of parameters) {
         const [key, value] = parameter.split('=', 2);
         if (key === 'ratio' && value.includes('/')) {
-          const [numerator, denominator] = value.split('/', 2).map((part) => parseFloat(part, 10));
+          const [numerator, denominator] = value.split('/', 2).map((part) => parseFloat(part));
           constraints[key] = numerator / denominator;
         } else {
-          constraints[key] = parseFloat(value, 10);
+          constraints[key] = parseFloat(value);
         }
       }
       const image = this.#imageCache[attribute];
@@ -970,7 +939,7 @@ var quival = (function (exports) {
       return true;
     }
     checkUlid(attribute, value, parameters) {
-      return /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(value);
+      return /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/i.test(value);
     }
     checkUuid(attribute, value, parameters) {
       return /^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/.test(value);
@@ -1090,11 +1059,14 @@ var quival = (function (exports) {
     }
     replaceCaseVariants(message, data) {
       Object.entries(data)
-        .flatMap(([key, value]) => [
-          [key, value],
-          [key.toLocaleUpperCase(), value.toLocaleUpperCase()],
-          [key.charAt(0).toLocaleUpperCase() + key.substring(1), value.charAt(0).toLocaleUpperCase() + value.substring(1)],
-        ])
+        .flatMap(([key, value]) => {
+          value = String(value);
+          return [
+            [key, value],
+            [key.toLocaleUpperCase(), value.toLocaleUpperCase()],
+            [key.charAt(0).toLocaleUpperCase() + key.substring(1), value.charAt(0).toLocaleUpperCase() + value.substring(1)],
+          ];
+        })
         .forEach(([key, value]) => (message = message.replaceAll(':' + key, value)));
       return message;
     }
@@ -1257,7 +1229,7 @@ var quival = (function (exports) {
     replaceGt(message, attribute, rule, parameters) {
       const value = this.validator.getValue(parameters[0]);
       return this.replace(message, {
-        value: value ? this.validator.getSize(parameters[0], value) : this.validator.getDisplayableAttribute(parameters[0]),
+        value: typeof value === 'undefined' ? this.validator.getDisplayableAttribute(parameters[0]) : this.validator.getSize(parameters[0], value),
       });
     }
     replaceGte(message, attribute, rule, parameters) {
@@ -1723,7 +1695,7 @@ var quival = (function (exports) {
       } else if (this.hasRule(attribute, this.stringRules)) {
         return String(value).length;
       } else if (isNumeric(value) && this.hasRule(attribute, this.numericRules)) {
-        return parseFloat(typeof value === 'string' ? value.trim() : value, 10);
+        return parseFloat(typeof value === 'string' ? value.trim() : value);
       } else if (value instanceof File) {
         return value.size / 1024;
       } else if (isPlainObject(value)) {
