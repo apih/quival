@@ -3326,6 +3326,11 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
+    it(`Passes when the field is a valid lowercase ULID`, async () => {
+      const validator = new Validator({ field: '01gzpcvrpr6k3kqw5b9esb8ph3' }, rules);
+      assert(await validator.passes());
+    });
+
     it(`Fails when the field is an invalid ULID`, async () => {
       const validator = new Validator({ field: '01GZPCVRPR6K3KOW5B9ESB8PH3' }, rules);
       assert(await validator.fails());

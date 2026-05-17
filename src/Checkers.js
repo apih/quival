@@ -963,7 +963,7 @@ export default class Checkers {
   }
 
   checkUlid(attribute, value, parameters) {
-    return /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(value);
+    return /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/i.test(value);
   }
 
   checkUuid(attribute, value, parameters) {
