@@ -184,7 +184,7 @@ export default class Checkers {
 
   checkInteger(attribute, value, parameters = []) {
     if (!parameters.includes('strict') && typeof value === 'string') {
-      value = parseFloat(value);
+      value = Number(value);
     }
 
     return Number.isInteger(value);

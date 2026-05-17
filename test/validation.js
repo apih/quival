@@ -1476,6 +1476,12 @@ describe('Validation', () => {
       validator.setData({ field: 'abc' });
       assert(await validator.fails());
 
+      validator.setData({ field: 'abc123' });
+      assert(await validator.fails());
+
+      validator.setData({ field: '123abc' });
+      assert(await validator.fails());
+
       validator.setData({ field: [1, 2, 3] });
       assert(await validator.fails());
     });
