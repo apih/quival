@@ -510,7 +510,7 @@ export default class Validator {
     } else if (this.hasRule(attribute, this.stringRules)) {
       return String(value).length;
     } else if (isNumeric(value) && this.hasRule(attribute, this.numericRules)) {
-      return parseFloat(typeof value === 'string' ? value.trim() : value, 10);
+      return parseFloat(typeof value === 'string' ? value.trim() : value);
     } else if (value instanceof File) {
       return value.size / 1024;
     } else if (isPlainObject(value)) {

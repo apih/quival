@@ -801,11 +801,11 @@ export default class Checkers {
       const [key, value] = parameter.split('=', 2);
 
       if (key === 'ratio' && value.includes('/')) {
-        const [numerator, denominator] = value.split('/', 2).map((part) => parseFloat(part, 10));
+        const [numerator, denominator] = value.split('/', 2).map((part) => parseFloat(part));
 
         constraints[key] = numerator / denominator;
       } else {
-        constraints[key] = parseFloat(value, 10);
+        constraints[key] = parseFloat(value);
       }
     }
 
