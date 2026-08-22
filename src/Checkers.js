@@ -780,7 +780,7 @@ export default class Checkers {
   }
 
   async checkImage(attribute, value, parameters = []) {
-    const mimes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+    const mimes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'avif', 'heic', 'heif'];
 
     if (parameters.includes('allow_svg')) {
       mimes.push('svg');
