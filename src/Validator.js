@@ -54,6 +54,7 @@ export default class Validator {
   ];
 
   #data;
+  #initialRules;
   #rules;
   #customMessages;
   #customAttributes;
@@ -122,6 +123,7 @@ export default class Validator {
 
   setProperties(data = {}, rules = {}, messages = {}, attributes = {}, values = {}) {
     this.#data = data;
+    this.#initialRules = rules;
     this.#rules = this.parseRules(rules);
     this.#customMessages = messages;
     this.#customAttributes = attributes;
@@ -132,11 +134,13 @@ export default class Validator {
 
   setData(data) {
     this.#data = data;
+    this.#rules = this.parseRules(this.#initialRules);
 
     return this;
   }
 
   setRules(rules) {
+    this.#initialRules = rules;
     this.#rules = this.parseRules(rules);
 
     return this;
@@ -206,11 +210,11 @@ export default class Validator {
     const data = this.getValue(parentPath);
 
     if (!(Array.isArray(data) || isPlainObject(data))) {
-      return [attribute];
+      return [];
     }
 
     Object.entries(data).forEach(([key, value]) => {
-      const implicitAttribute = `${parentPath}.${key}.${childPath}`.replace(/\.$/, '');
+      const implicitAttribute = [parentPath, key, childPath].filter((part) => part !== '').join('.');
       const implicitAttributes = implicitAttribute.includes('*') ? this.parseWildcardAttribute(implicitAttribute) : [implicitAttribute];
 
       attributes.push(...implicitAttributes);
@@ -554,7 +558,7 @@ export default class Validator {
   }
 
   getValue(attribute) {
-    return getByPath(this.#data, attribute);
+    return attribute === '' ? this.#data : getByPath(this.#data, attribute);
   }
 
   errors() {
