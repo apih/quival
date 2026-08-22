@@ -376,6 +376,69 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'base64'`, () => {
+    const rules = { field: 'base64' };
+
+    it(`Passes when the field is a valid Base64 string`, async () => {
+      const validator = new Validator({ field: 'TGFyYXZlbA==' }, rules);
+      assert(await validator.passes());
+
+      validator.setData({ field: 'YQ==' });
+      assert(await validator.passes());
+
+      validator.setData({ field: 'Zm9vYmFy' });
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the field is a valid Base64 string without padding`, async () => {
+      const validator = new Validator({ field: 'YQ' }, rules);
+      assert(await validator.passes());
+
+      validator.setData({ field: 'YWJjZA' });
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the Base64 string contains whitespace characters`, async () => {
+      const validator = new Validator({ field: 'SGVsbG8g V29ybGQ=' }, rules);
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the field is an invalid Base64 string`, async () => {
+      const validator = new Validator({ field: 'not-base64!' }, rules);
+      assert(await validator.fails());
+
+      validator.setData({ field: 'YWJ.jZA==' });
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the Base64 string has an invalid length or padding`, async () => {
+      const validator = new Validator({ field: 'A' }, rules);
+      assert(await validator.fails());
+
+      validator.setData({ field: 'YQ=' });
+      assert(await validator.fails());
+
+      validator.setData({ field: 'YQ===' });
+      assert(await validator.fails());
+
+      validator.setData({ field: '====' });
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is not a string`, async () => {
+      const validator = new Validator({ field: ['TGFyYXZlbA=='] }, rules);
+      assert(await validator.fails());
+
+      validator.setData({ field: 12345 });
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is an empty string`, async () => {
+      const validator = new Validator({ field: '' }, { field: 'required|base64' });
+      assert(await validator.fails());
+    });
+  });
+
   describe(`Rule 'before'`, () => {
     const date = '2022-01-01';
     const rules1 = { field: `before:${date}` };

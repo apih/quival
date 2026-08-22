@@ -474,6 +474,17 @@ export default class Checkers {
     return !/[^\x09\x10\x13\x0A\x0D\x20-\x7E]/.test(value);
   }
 
+  checkBase64(attribute, value, parameters) {
+    if (typeof value !== 'string' || value === '') {
+      return false;
+    }
+
+    // Whitespace characters are ignored, just like how PHP does it in strict mode
+    const stripped = value.replace(/[ \t\n\r\f\v]/g, '');
+
+    return /^(?:[a-z0-9+/]{4})*(?:[a-z0-9+/]{2,3}|[a-z0-9+/]{2}==|[a-z0-9+/]{3}=)?$/i.test(stripped);
+  }
+
   checkRegex(attribute, value, parameters, invert = false) {
     if (!(typeof value === 'string' || isNumeric(value))) {
       return false;
