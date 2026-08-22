@@ -127,9 +127,9 @@ export function parseDate(value) {
   ) {
     [, years, months, days, , hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
   } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{4})[.\/-](\d{2})[.\/-](\d{2})/i))) {
-    [, hours, minutes, , seconds, meridiem = null, years, months, days] = match.map(castToIntegers);
+    [, hours, minutes, , seconds = 0, meridiem = null, years, months, days] = match.map(castToIntegers);
   } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{2})[.\/-](\d{2})[.\/-](\d{4})/i))) {
-    [, hours, minutes, , seconds, meridiem = null, days, months, years] = match.map(castToIntegers);
+    [, hours, minutes, , seconds = 0, meridiem = null, days, months, years] = match.map(castToIntegers);
   } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?/i))) {
     const current = new Date();
 
@@ -167,6 +167,7 @@ export function parseDateByFormat(value, format) {
     return new Date('');
   }
 
+  value = String(value);
   format = format.split('');
 
   let pattern = '^';
