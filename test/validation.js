@@ -1557,6 +1557,14 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
+    it(`Passes when the field's value is not a string but matches the list exactly`, async () => {
+      const validator = new Validator({ field: 1 }, { field: 'in:1,2,3' });
+      assert(await validator.passes());
+
+      validator.setData({ field: true });
+      assert(await validator.passes());
+    });
+
     it(`Fails when the field's value is not in the list`, async () => {
       const validator = new Validator({ field: 'a' }, { field: 'in:x,y,z' });
       assert(await validator.fails());
@@ -1564,6 +1572,24 @@ describe('Validation', () => {
 
     it(`Fails when the field's values are not in the list`, async () => {
       const validator = new Validator({ field: ['a', 'z'] }, { field: 'array|in:x,y,z' });
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field's values contain an array or a plain object`, async () => {
+      const validator = new Validator({ field: [['y'], 'z'] }, { field: 'array|in:x,y,z' });
+      assert(await validator.fails());
+
+      validator.setData({ field: [{ x: 'y' }, 'z'] });
+      assert(await validator.fails());
+    });
+    it(`Fails when the field's value only matches the list loosely`, async () => {
+      const validator = new Validator({ field: 1 }, { field: 'in:01' });
+      assert(await validator.fails());
+
+      validator.setProperties({ field: 1.5 }, { field: 'in:1.50' });
+      assert(await validator.fails());
+
+      validator.setProperties({ field: [1] }, { field: 'array|in:01' });
       assert(await validator.fails());
     });
   });

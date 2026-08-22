@@ -27,6 +27,14 @@ export default class Checkers {
     this.#imageCache = {};
   }
 
+  castToString(value) {
+    if (typeof value === 'boolean') {
+      return value ? '1' : '';
+    }
+
+    return value === null || typeof value === 'undefined' ? '' : String(value);
+  }
+
   isDependent(parameters) {
     const other = this.validator.getValue(parameters[0]);
 
@@ -734,11 +742,15 @@ export default class Checkers {
 
   checkIn(attribute, value, parameters) {
     if (!(this.checkArray(attribute, value) && this.validator.hasRule(attribute, 'array'))) {
-      return parameters.some((parameter) => parameter == value);
+      return parameters.includes(this.castToString(value));
     }
 
     for (const item of Object.values(value)) {
-      if (!parameters.some((parameter) => parameter == item)) {
+      if (Array.isArray(item) || isPlainObject(item)) {
+        return false;
+      }
+
+      if (!parameters.includes(this.castToString(item))) {
         return false;
       }
     }
