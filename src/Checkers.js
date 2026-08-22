@@ -138,6 +138,18 @@ export default class Checkers {
     return true;
   }
 
+  checkArrayKeys(attribute, value, parameters = []) {
+    if (parameters.length === 0) {
+      throw new Error('Validation rule array_keys requires at least 1 parameter.');
+    }
+
+    if (!(Array.isArray(value) || isPlainObject(value))) {
+      return false;
+    }
+
+    return Object.keys(value).every((key) => parameters.includes(key));
+  }
+
   checkList(attribute, value, parameters) {
     return Array.isArray(value);
   }

@@ -11,6 +11,7 @@ export default {
   alpha_dash: 'The :attribute field must only contain letters, numbers, dashes, and underscores.',
   alpha_num: 'The :attribute field must only contain letters and numbers.',
   array: 'The :attribute field must be an array.',
+  array_keys: 'The :attribute field must only contain the following keys: :values.',
   ascii: 'The :attribute field must only contain single-byte alphanumeric characters and symbols.',
   base64: 'The :attribute field must be a valid Base64 string.',
   before: 'The :attribute field must be a date before :date.',

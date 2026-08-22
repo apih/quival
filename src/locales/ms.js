@@ -11,6 +11,7 @@ export default {
   alpha_dash: 'Medan :attribute hanya boleh mengandungi huruf, nombor, tanda sengkang, dan garis bawah.',
   alpha_num: 'Medan :attribute hanya boleh mengandungi huruf dan nombor.',
   array: 'Medan :attribute mesti jujukan.',
+  array_keys: 'Medan :attribute hanya boleh mengandungi kunci berikut: :values.',
   ascii: 'Medan :attribute hanya boleh mengandungi abjad, angka dan simbol berjenis bait tunggal.',
   base64: 'Medan :attribute mesti rentetan Base64 yang sah.',
   before: 'Medan :attribute mesti tarikh sebelum :date.',

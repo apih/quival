@@ -1,3 +1,5 @@
+import { isPlainObject } from './helpers.js';
+
 export default class Replacers {
   validator;
 
@@ -272,6 +274,18 @@ export default class Replacers {
   }
 
   // Array
+  replaceArrayKeys(message, attribute, rule, parameters) {
+    const value = this.validator.getValue(attribute);
+    const keys = Array.isArray(value) || isPlainObject(value) ? Object.keys(value) : [];
+
+    return this.replaceCaseVariants(this.replaceRequiredArrayKeys(message, attribute, rule, parameters), {
+      unexpected: keys
+        .filter((key) => !parameters.includes(key))
+        .map((key) => this.validator.getDisplayableValue(attribute, key))
+        .join(', '),
+    });
+  }
+
   replaceInArray(message, attribute, rule, parameters) {
     return this.replaceAcceptedIf(message, attribute, rule, parameters);
   }

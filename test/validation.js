@@ -346,6 +346,56 @@ describe('Validation', () => {
     });
   });
 
+  describe(`Rule 'array_keys'`, () => {
+    const rules = { field: 'array_keys:x,y,z' };
+
+    it(`Passes when the array contains only the given keys`, async () => {
+      const validator = new Validator({ field: { x: 1, y: 2, z: 3 } }, rules);
+      assert(await validator.passes());
+
+      validator.setData({ field: { x: 1 } });
+      assert(await validator.passes());
+
+      validator.setData({ field: {} });
+      assert(await validator.passes());
+    });
+
+    it(`Passes when the array's indexes are given as the keys`, async () => {
+      const validator = new Validator({ field: [1, 2] }, { field: 'array_keys:0,1' });
+      assert(await validator.passes());
+    });
+
+    it(`Fails when the array contains keys other than the given keys`, async () => {
+      const validator = new Validator({ field: { x: 1, a: 2 } }, rules);
+      assert(await validator.fails());
+
+      validator.setData({ field: [1, 2] });
+      assert(await validator.fails());
+    });
+
+    it(`Fails when the field is not an array or a plain object`, async () => {
+      const validator = new Validator({ field: 'abc' }, rules);
+      assert(await validator.fails());
+
+      validator.setData({ field: 123 });
+      assert(await validator.fails());
+    });
+
+    it(`Replaces the placeholders with the given keys and the unexpected keys`, async () => {
+      const validator = new Validator({ field: { x: 1, a: 2, b: 3 } }, rules, { 'field.array_keys': ':values | :unexpected' });
+
+      assert.deepEqual((await validator.validate()).messages(), {
+        field: ['x, y, z | a, b'],
+      });
+    });
+
+    it(`Throws an error when no key is given`, async () => {
+      const validator = new Validator({ field: { x: 1 } }, { field: 'array_keys' });
+
+      await assert.rejects(validator.validate(), { message: 'Validation rule array_keys requires at least 1 parameter.' });
+    });
+  });
+
   describe(`Rule 'ascii'`, () => {
     const rules = { field: 'ascii' };
 
