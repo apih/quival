@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.6 (git+https://github.com/apih/quival.git)
+ * quival v0.5.7 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -97,9 +97,9 @@ var quival = (function (exports) {
     ) {
       [, years, months, days, , hours = 0, minutes = 0, , seconds = 0, meridiem = null] = match.map(castToIntegers);
     } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{4})[.\/-](\d{2})[.\/-](\d{2})/i))) {
-      [, hours, minutes, , seconds, meridiem = null, years, months, days] = match.map(castToIntegers);
+      [, hours, minutes, , seconds = 0, meridiem = null, years, months, days] = match.map(castToIntegers);
     } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?\s?(\d{2})[.\/-](\d{2})[.\/-](\d{4})/i))) {
-      [, hours, minutes, , seconds, meridiem = null, days, months, years] = match.map(castToIntegers);
+      [, hours, minutes, , seconds = 0, meridiem = null, days, months, years] = match.map(castToIntegers);
     } else if ((match = value.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?\s?(am|pm)?/i))) {
       const current = new Date();
       years = current.getFullYear();
@@ -131,6 +131,7 @@ var quival = (function (exports) {
     if (isEmpty(value)) {
       return new Date('');
     }
+    value = String(value);
     format = format.split('');
     let pattern = '^';
     let indices = {
@@ -228,6 +229,12 @@ var quival = (function (exports) {
       this.#distinctCache = {};
       this.#imageCache = {};
     }
+    castToString(value) {
+      if (typeof value === 'boolean') {
+        return value ? '1' : '';
+      }
+      return value === null || typeof value === 'undefined' ? '' : String(value);
+    }
     isDependent(parameters) {
       const other = this.validator.getValue(parameters[0]);
       return parameters.slice(1).some((value) => value == other);
@@ -311,6 +318,15 @@ var quival = (function (exports) {
         }
       }
       return true;
+    }
+    checkArrayKeys(attribute, value, parameters = []) {
+      if (parameters.length === 0) {
+        throw new Error('Validation rule array_keys requires at least 1 parameter.');
+      }
+      if (!(Array.isArray(value) || isPlainObject(value))) {
+        return false;
+      }
+      return Object.keys(value).every((key) => parameters.includes(key));
     }
     checkList(attribute, value, parameters) {
       return Array.isArray(value);
@@ -567,6 +583,14 @@ var quival = (function (exports) {
     checkAscii(attribute, value, parameters) {
       return !/[^\x09\x10\x13\x0A\x0D\x20-\x7E]/.test(value);
     }
+    checkBase64(attribute, value, parameters) {
+      if (typeof value !== 'string' || value === '') {
+        return false;
+      }
+      // Whitespace characters are ignored, just like how PHP does it in strict mode
+      const stripped = value.replace(/[ \t\n\r\f\v]/g, '');
+      return /^(?:[a-z0-9+/]{4})*(?:[a-z0-9+/]{2,3}|[a-z0-9+/]{2}==|[a-z0-9+/]{3}=)?$/i.test(stripped);
+    }
     checkRegex(attribute, value, parameters, invert = false) {
       if (!(typeof value === 'string' || isNumeric(value))) {
         return false;
@@ -744,10 +768,13 @@ var quival = (function (exports) {
     }
     checkIn(attribute, value, parameters) {
       if (!(this.checkArray(attribute, value) && this.validator.hasRule(attribute, 'array'))) {
-        return parameters.some((parameter) => parameter == value);
+        return parameters.includes(this.castToString(value));
       }
       for (const item of Object.values(value)) {
-        if (!parameters.some((parameter) => parameter == item)) {
+        if (Array.isArray(item) || isPlainObject(item)) {
+          return false;
+        }
+        if (!parameters.includes(this.castToString(item))) {
           return false;
         }
       }
@@ -779,7 +806,7 @@ var quival = (function (exports) {
       return this.checkMimes(attribute, value, parameters);
     }
     async checkImage(attribute, value, parameters = []) {
-      const mimes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+      const mimes = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'avif', 'heic', 'heif'];
       if (parameters.includes('allow_svg')) {
         mimes.push('svg');
       }
@@ -1266,6 +1293,16 @@ var quival = (function (exports) {
       });
     }
     // Array
+    replaceArrayKeys(message, attribute, rule, parameters) {
+      const value = this.validator.getValue(attribute);
+      const keys = Array.isArray(value) || isPlainObject(value) ? Object.keys(value) : [];
+      return this.replaceCaseVariants(this.replaceRequiredArrayKeys(message, attribute, rule, parameters), {
+        unexpected: keys
+          .filter((key) => !parameters.includes(key))
+          .map((key) => this.validator.getDisplayableValue(attribute, key))
+          .join(', '),
+      });
+    }
     replaceInArray(message, attribute, rule, parameters) {
       return this.replaceAcceptedIf(message, attribute, rule, parameters);
     }
@@ -1339,6 +1376,7 @@ var quival = (function (exports) {
       'required_without_all',
     ];
     #data;
+    #initialRules;
     #rules;
     #customMessages;
     #customAttributes;
@@ -1395,6 +1433,7 @@ var quival = (function (exports) {
     }
     setProperties(data = {}, rules = {}, messages = {}, attributes = {}, values = {}) {
       this.#data = data;
+      this.#initialRules = rules;
       this.#rules = this.parseRules(rules);
       this.#customMessages = messages;
       this.#customAttributes = attributes;
@@ -1403,9 +1442,11 @@ var quival = (function (exports) {
     }
     setData(data) {
       this.#data = data;
+      this.#rules = this.parseRules(this.#initialRules);
       return this;
     }
     setRules(rules) {
+      this.#initialRules = rules;
       this.#rules = this.parseRules(rules);
       return this;
     }
@@ -1454,10 +1495,10 @@ var quival = (function (exports) {
       const childPath = attribute.substring(index + 2);
       const data = this.getValue(parentPath);
       if (!(Array.isArray(data) || isPlainObject(data))) {
-        return [attribute];
+        return [];
       }
       Object.entries(data).forEach(([key, value]) => {
-        const implicitAttribute = `${parentPath}.${key}.${childPath}`.replace(/\.$/, '');
+        const implicitAttribute = [parentPath, key, childPath].filter((part) => part !== '').join('.');
         const implicitAttributes = implicitAttribute.includes('*') ? this.parseWildcardAttribute(implicitAttribute) : [implicitAttribute];
         attributes.push(...implicitAttributes);
         implicitAttributes.forEach((value) => (this.#implicitAttributes[value] = attribute));
@@ -1729,7 +1770,7 @@ var quival = (function (exports) {
       return typeof this.getValue(attribute) !== 'undefined';
     }
     getValue(attribute) {
-      return getByPath(this.#data, attribute);
+      return attribute === '' ? this.#data : getByPath(this.#data, attribute);
     }
     errors() {
       return this.#errors;

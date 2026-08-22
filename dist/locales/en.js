@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.6 (git+https://github.com/apih/quival.git)
+ * quival v0.5.7 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -21,7 +21,9 @@ this.quival.locales.en = (function () {
     alpha_dash: 'The :attribute field must only contain letters, numbers, dashes, and underscores.',
     alpha_num: 'The :attribute field must only contain letters and numbers.',
     array: 'The :attribute field must be an array.',
+    array_keys: 'The :attribute field must only contain the following keys: :values.',
     ascii: 'The :attribute field must only contain single-byte alphanumeric characters and symbols.',
+    base64: 'The :attribute field must be a valid Base64 string.',
     before: 'The :attribute field must be a date before :date.',
     before_or_equal: 'The :attribute field must be a date before or equal to :date.',
     between: {
