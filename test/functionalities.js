@@ -120,4 +120,32 @@ describe('Functionalities', () => {
       val6: ['VAL6 Val2 / bar'],
     });
   });
+
+  it('Expand wildcard rules against the current data', async () => {
+    const validator = new Validator({ items: [{ val: '' }] }, { 'items.*.val': 'required' });
+
+    assert.deepEqual((await validator.validate()).messages(), {
+      'items.0.val': ['validation.required'],
+    });
+
+    validator.setData({ items: [{ val: 'abc' }, { val: '' }] });
+
+    assert.deepEqual((await validator.validate()).messages(), {
+      'items.1.val': ['validation.required'],
+    });
+  });
+
+  it('Expand root level wildcard rules', async () => {
+    const validator = new Validator({ val1: 'abc', val2: '' }, { '*': 'required' });
+
+    assert.deepEqual((await validator.validate()).messages(), {
+      val2: ['validation.required'],
+    });
+  });
+
+  it('Skip wildcard rules that cannot be expanded', async () => {
+    const validator = new Validator({ items: 'abc' }, { 'items.*.val': 'required' });
+
+    assert.deepEqual((await validator.validate()).messages(), {});
+  });
 });
