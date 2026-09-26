@@ -1,4 +1,5 @@
 import { strict as assert } from 'assert';
+import Lang from '../src/Lang.js';
 import Validator from '../src/Validator.js';
 
 globalThis.File = class {
@@ -3509,6 +3510,93 @@ describe('Validation', () => {
 
       validator = new Validator({ field: 'xxx395dbfe1-3451-43f0-b295-337c00074099xxx' }, rules);
       assert(await validator.fails());
+    });
+  });
+
+  describe(`Wildcard parameters in dependent rules`, () => {
+    it(`Resolves '*' with the keys of the validated attribute`, async () => {
+      const validator = new Validator(
+        {
+          items: [
+            { type: 'paid', price: '' },
+            { type: 'free', price: '' },
+          ],
+        },
+        { 'items.*.price': 'required_if:items.*.type,paid' },
+      );
+
+      assert(await validator.fails());
+      assert(validator.errors().has('items.0.price'));
+      assert(!validator.errors().has('items.1.price'));
+    });
+
+    it(`Resolves multiple '*' in nested attributes`, async () => {
+      const validator = new Validator(
+        {
+          groups: [
+            { name: 'normal', list: [{ commission: '' }, { commission: '1.00' }] },
+            { name: 'distributor', list: [{ commission: '' }] },
+          ],
+        },
+        { 'groups.*.list.*.commission': 'required_if:groups.*.name,normal,employee' },
+      );
+
+      assert(await validator.fails());
+      assert(validator.errors().has('groups.0.list.0.commission'));
+      assert(!validator.errors().has('groups.0.list.1.commission'));
+      assert(!validator.errors().has('groups.1.list.0.commission'));
+    });
+
+    it(`Resolves '*' in comparison rules`, async () => {
+      const validator = new Validator(
+        {
+          items: [
+            { min: 5, max: 3 },
+            { min: 1, max: 2 },
+          ],
+        },
+        { 'items.*.max': 'gt:items.*.min' },
+      );
+
+      assert(await validator.fails());
+      assert(validator.errors().has('items.0.max'));
+      assert(!validator.errors().has('items.1.max'));
+    });
+
+    it(`Uses wildcard custom attribute names for resolved parameters`, async () => {
+      const validator = new Validator(
+        { items: [{ type: 'paid', price: '' }] },
+        { 'items.*.price': 'required_if:items.*.type,paid' },
+        { required_if: ':attribute when :other' },
+        { 'items.*.type': 'Type', 'items.*.price': 'Price' },
+      );
+
+      assert(await validator.fails());
+      assert.equal(validator.errors().first('items.0.price'), 'Price when Type');
+    });
+
+    it(`Uses wildcard attribute translations for resolved parameters`, async () => {
+      Lang.setMessages('test', { attributes: { 'items.*.type': 'Type' } });
+      Lang.locale('test');
+
+      try {
+        const validator = new Validator(
+          { items: [{ type: 'paid', price: '' }] },
+          { 'items.*.price': 'required_if:items.*.type,paid' },
+          { required_if: ':other' },
+        );
+
+        assert(await validator.fails());
+        assert.equal(validator.errors().first('items.0.price'), 'Type');
+      } finally {
+        Lang.locale(undefined);
+      }
+    });
+
+    it(`Leaves non-dependent rule parameters untouched`, async () => {
+      const validator = new Validator({ items: [{ code: '*' }] }, { 'items.*.code': 'in:*,#' });
+
+      assert(await validator.passes());
     });
   });
 });

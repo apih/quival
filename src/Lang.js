@@ -20,6 +20,10 @@ export default class Lang {
     return;
   }
 
+  static all() {
+    return this.#messages[this.#locale] ?? {};
+  }
+
   static has(path) {
     return typeof this.get(path) === 'undefined' ? false : true;
   }

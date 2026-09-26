@@ -2,7 +2,7 @@ import Checkers from './Checkers.js';
 import ErrorBag from './ErrorBag.js';
 import Lang from './Lang.js';
 import Replacers from './Replacers.js';
-import { flattenObject, getByPath, isEmpty, isNumeric, isPlainObject, parseCsvString, toCamelCase, toSnakeCase } from './helpers.js';
+import { flattenObject, getByPath, isEmpty, isNumeric, isPlainObject, parseCsvString, toCamelCase, toSnakeCase, wildcardToRegExp } from './helpers.js';
 
 export default class Validator {
   static #customCheckers = {};
@@ -51,6 +51,49 @@ export default class Validator {
     'required_with_all',
     'required_without',
     'required_without_all',
+  ];
+
+  static #dependentRules = [
+    'accepted_if',
+    'after',
+    'after_or_equal',
+    'before',
+    'before_or_equal',
+    'confirmed',
+    'declined_if',
+    'different',
+    'exclude_if',
+    'exclude_unless',
+    'exclude_with',
+    'exclude_without',
+    'gt',
+    'gte',
+    'lt',
+    'lte',
+    'missing_if',
+    'missing_unless',
+    'missing_with',
+    'missing_with_all',
+    'present_if',
+    'present_unless',
+    'present_with',
+    'present_with_all',
+    'prohibited',
+    'prohibited_if',
+    'prohibited_if_accepted',
+    'prohibited_if_declined',
+    'prohibited_unless',
+    'prohibits',
+    'required_if',
+    'required_if_accepted',
+    'required_if_declined',
+    'required_unless',
+    'required_with',
+    'required_with_all',
+    'required_without',
+    'required_without_all',
+    'same',
+    'unique',
   ];
 
   #data;
@@ -185,14 +228,21 @@ export default class Validator {
   parseRules(rules) {
     const parsedRules = {};
 
-    for (const [attribute, attributeRules] of Object.entries(rules)) {
-      const attributes = attribute.includes('*') ? this.parseWildcardAttribute(attribute) : [attribute];
+    for (const [primaryAttribute, attributeRules] of Object.entries(rules)) {
+      const attributes = primaryAttribute.includes('*') ? this.parseWildcardAttribute(primaryAttribute) : [primaryAttribute];
 
       for (const attribute of attributes) {
+        const keys = this.getExplicitKeys(primaryAttribute, attribute);
         const parsedAttributeRules = [];
 
         for (const attributeRule of this.parseAttributeRules(attributeRules)) {
-          parsedAttributeRules.push(this.parseAttributeRule(attributeRule));
+          let [rule, parameters] = this.parseAttributeRule(attributeRule);
+
+          if (keys.length > 0 && Validator.#dependentRules.includes(rule)) {
+            parameters = this.replaceAsterisksInParameters(parameters, keys);
+          }
+
+          parsedAttributeRules.push([rule, parameters]);
         }
 
         parsedRules[attribute] = parsedAttributeRules;
@@ -200,6 +250,22 @@ export default class Validator {
     }
 
     return parsedRules;
+  }
+
+  getExplicitKeys(primaryAttribute, attribute) {
+    if (!primaryAttribute.includes('*')) {
+      return [];
+    }
+
+    return attribute.match(wildcardToRegExp(primaryAttribute))?.slice(1) ?? [];
+  }
+
+  replaceAsterisksInParameters(parameters, keys) {
+    return parameters.map((parameter) => {
+      let index = 0;
+
+      return String(parameter).replace(/\*/g, () => keys[index++] ?? '*');
+    });
   }
 
   parseWildcardAttribute(attribute) {
@@ -470,12 +536,17 @@ export default class Validator {
 
   getDisplayableAttribute(attribute) {
     const unparsed = this.getPrimaryAttribute(attribute);
+    const translations = Object.fromEntries(
+      Object.entries(Lang.all())
+        .filter(([key]) => key.startsWith('attributes.'))
+        .map(([key, line]) => [key.slice('attributes.'.length), line]),
+    );
 
     for (const name of [attribute, unparsed]) {
-      if (Object.hasOwn(this.#customAttributes, name)) {
-        return this.#customAttributes[name];
-      } else if (Lang.has(`attributes.${name}`)) {
-        return Lang.get(`attributes.${name}`);
+      const line = this.getAttributeFromLocalArray(name, this.#customAttributes) ?? this.getAttributeFromLocalArray(name, translations);
+
+      if (typeof line !== 'undefined') {
+        return line;
       }
     }
 
@@ -484,6 +555,18 @@ export default class Validator {
     }
 
     return toSnakeCase(attribute).replaceAll('_', ' ');
+  }
+
+  getAttributeFromLocalArray(attribute, source) {
+    if (Object.hasOwn(source, attribute)) {
+      return source[attribute];
+    }
+
+    for (const [key, line] of Object.entries(source)) {
+      if (key.includes('*') && wildcardToRegExp(key).test(attribute)) {
+        return line;
+      }
+    }
   }
 
   getDisplayableValue(attribute, value) {

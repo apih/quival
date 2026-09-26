@@ -34,6 +34,10 @@ export function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+export function wildcardToRegExp(pattern) {
+  return new RegExp(`^${pattern.split('*').map(escapeRegExp).join('([^.]*)')}$`);
+}
+
 export function getByPath(obj, path, defaultValue) {
   const keys = path.split('.');
   let current = obj;
