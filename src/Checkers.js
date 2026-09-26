@@ -74,28 +74,66 @@ export default class Checkers {
   }
 
   compareValues(attribute, value, parameters, callback) {
-    if (isEmpty(value)) {
+    const parameter = parameters[0] ?? '';
+
+    if (isEmpty(value) || parameter === '') {
       return false;
     }
 
-    const other = parameters[0] ?? '';
-    let otherValue = this.validator.getValue(other);
+    let otherValue = this.validator.getValue(parameter);
 
-    if (typeof otherValue === 'undefined') {
-      if (isNumeric(other)) {
-        otherValue = parseFloat(other);
-      } else {
-        otherValue = null;
+    // Laravel's ConvertEmptyStringsToNull middleware turns empty strings into null on the server
+    if (otherValue === '') {
+      otherValue = null;
+    }
+
+    const useNumericSize = isNumeric(value) || this.validator.hasRule(attribute, this.validator.numericRules);
+
+    const sizeOf = (subject) => {
+      if (useNumericSize && isNumeric(subject)) {
+        return parseFloat(typeof subject === 'string' ? subject.trim() : subject);
+      } else if (subject instanceof File) {
+        return subject.size / 1024;
+      } else if (Array.isArray(subject)) {
+        return subject.length;
+      } else if (isPlainObject(subject)) {
+        return Object.keys(subject).length;
+      } else if (typeof subject === 'boolean') {
+        return subject ? 1 : 0;
       }
-    } else {
-      otherValue = this.validator.getSize(other, otherValue);
+
+      return String(subject ?? '').length;
+    };
+
+    const typeOf = (subject) => {
+      if (subject === null || typeof subject === 'undefined') {
+        return 'null';
+      } else if (subject instanceof File) {
+        return 'file';
+      } else if (Array.isArray(subject) || isPlainObject(subject)) {
+        return 'array';
+      }
+
+      return typeof subject;
+    };
+
+    if ((otherValue === null || typeof otherValue === 'undefined') && isNumeric(value) && isNumeric(parameter)) {
+      return callback(sizeOf(value), parseFloat(String(parameter).trim()));
     }
 
-    if (isEmpty(otherValue)) {
+    if (isNumeric(parameter)) {
       return false;
     }
 
-    return callback(this.validator.getSize(attribute, value), otherValue);
+    if (useNumericSize && isNumeric(value) && isNumeric(otherValue)) {
+      return callback(sizeOf(value), sizeOf(otherValue));
+    }
+
+    if (typeOf(value) !== typeOf(otherValue)) {
+      return false;
+    }
+
+    return callback(sizeOf(value), sizeOf(otherValue));
   }
 
   compareDates(attribute, value, parameters, callback) {

@@ -1230,9 +1230,9 @@ describe('Validation', () => {
   });
 
   describe(`Rule 'gt'`, () => {
-    it(`Passes when the array's size is greater than provided value`, async () => {
+    it(`Fails when an array of greater size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: [1, 2, 3, 4, 5, 6] }, { field: 'array|gt:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the array's size is greater than other field`, async () => {
@@ -1240,9 +1240,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the file's size is greater than provided value`, async () => {
+    it(`Fails when a file of greater size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: new File('', 6 * 1024, '') }, { field: 'file|gt:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the file's size is greater than other field`, async () => {
@@ -1260,9 +1260,17 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the string's length is greater than provided value`, async () => {
+    it(`Fails when the other field is an empty string`, async () => {
+      let validator = new Validator({ field: 'abc', other: '' }, { field: 'gt:other' });
+      assert(await validator.fails());
+
+      validator = new Validator({ field: '5', other: '' }, { field: 'gt:other' });
+      assert(await validator.fails());
+    });
+
+    it(`Fails when a string of greater length is compared with a numeric value`, async () => {
       const validator = new Validator({ field: 'abcdef' }, { field: 'string|gt:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the string's length is greater than other field`, async () => {
@@ -1352,9 +1360,9 @@ describe('Validation', () => {
   });
 
   describe(`Rule 'gte'`, () => {
-    it(`Passes when the array's size is greater than provided value`, async () => {
+    it(`Fails when an array of greater size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: [1, 2, 3, 4, 5, 6] }, { field: 'array|gte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the array's size is greater than other field`, async () => {
@@ -1362,9 +1370,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the file's size is greater than provided value`, async () => {
+    it(`Fails when a file of greater size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: new File('', 66 * 1024, '') }, { field: 'file|gte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the file's size is greater than other field`, async () => {
@@ -1382,9 +1390,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the string's length is greater than provided value`, async () => {
+    it(`Fails when a string of greater length is compared with a numeric value`, async () => {
       const validator = new Validator({ field: 'abcdef' }, { field: 'string|gte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the string's length is greater than other field`, async () => {
@@ -1392,9 +1400,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the array's size is equal to provided value`, async () => {
+    it(`Fails when an array of equal size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: [1, 2, 3] }, { field: 'array|gte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the array's size is equal to other field`, async () => {
@@ -1402,9 +1410,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the file's size is equal to provided value`, async () => {
+    it(`Fails when a file of equal size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: new File('', 3 * 1024, '') }, { field: 'file|gte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the file's size is equal to other field`, async () => {
@@ -1422,9 +1430,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the string's length is equal to provided value`, async () => {
+    it(`Fails when a string of equal length is compared with a numeric value`, async () => {
       const validator = new Validator({ field: 'abc' }, { field: 'string|gte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the string's length is equal to other field`, async () => {
@@ -1839,9 +1847,9 @@ describe('Validation', () => {
   });
 
   describe(`Rule 'lt'`, () => {
-    it(`Passes when the array's size is lesser than provided value`, async () => {
+    it(`Fails when an array of lesser size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: [1, 2, 3] }, { field: 'array|lt:6' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the array's size is lesser than other field`, async () => {
@@ -1849,9 +1857,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the file's size is lesser than provided value`, async () => {
+    it(`Fails when a file of lesser size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: new File('', 3 * 1024, '') }, { field: 'file|lt:6' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the file's size is lesser than other field`, async () => {
@@ -1869,9 +1877,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the string's length is lesser than provided value`, async () => {
+    it(`Fails when a string of lesser length is compared with a numeric value`, async () => {
       const validator = new Validator({ field: 'abc' }, { field: 'string|lt:6' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the string's length is lesser than other field`, async () => {
@@ -1961,9 +1969,9 @@ describe('Validation', () => {
   });
 
   describe(`Rule 'lte'`, () => {
-    it(`Passes when the array's size is lesser than provided value`, async () => {
+    it(`Fails when an array of lesser size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: [1, 2, 3] }, { field: 'array|lte:6' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the array's size is lesser than other field`, async () => {
@@ -1971,9 +1979,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the file's size is lesser than provided value`, async () => {
+    it(`Fails when a file of lesser size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: new File('', 3 * 1024, '') }, { field: 'file|lte:6' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the file's size is lesser than other field`, async () => {
@@ -1991,9 +1999,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the string's length is lesser than provided value`, async () => {
+    it(`Fails when a string of lesser length is compared with a numeric value`, async () => {
       const validator = new Validator({ field: 'abc' }, { field: 'string|lte:6' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the string's length is lesser than other field`, async () => {
@@ -2001,9 +2009,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the array's size is equal to provided value`, async () => {
+    it(`Fails when an array of equal size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: [1, 2, 3] }, { field: 'array|lte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the array's size is equal to other field`, async () => {
@@ -2011,9 +2019,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the file's size is equal to provided value`, async () => {
+    it(`Fails when a file of equal size is compared with a numeric value`, async () => {
       const validator = new Validator({ field: new File('', 3 * 1024, '') }, { field: 'file|lte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the file's size is equal to other field`, async () => {
@@ -2031,9 +2039,9 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
 
-    it(`Passes when the string's length is equal to provided value`, async () => {
+    it(`Fails when a string of equal length is compared with a numeric value`, async () => {
       const validator = new Validator({ field: 'abc' }, { field: 'string|lte:3' });
-      assert(await validator.passes());
+      assert(await validator.fails());
     });
 
     it(`Passes when the string's length is equal to other field`, async () => {
