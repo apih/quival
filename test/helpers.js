@@ -197,6 +197,14 @@ describe('Helpers', () => {
     assert(isNumeric('123'));
     assert(!isNumeric('abc'));
     assert(!isNumeric(true));
+
+    for (const value of [' 5 ', '5.', '+5', '.5', '1e3', '\t5\n']) {
+      assert(isNumeric(value), value);
+    }
+
+    for (const value of ['', '  ', '0x1A', '0b11', '0o7', 'Infinity', 'NaN', '1_000', '5 5', null, [], [5]]) {
+      assert(!isNumeric(value), value);
+    }
   });
 
   it('isPlainObject', () => {

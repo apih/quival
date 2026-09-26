@@ -262,9 +262,12 @@ export function isEmpty(value) {
 }
 
 export function isNumeric(value) {
-  const number = Number(value);
+  if (typeof value === 'number') {
+    return !isNaN(value);
+  }
 
-  return value !== null && typeof value !== 'boolean' && typeof number === 'number' && !isNaN(number);
+  // Plain decimal notation only, same as PHP's is_numeric()
+  return typeof value === 'string' && /^[ \t\n\r\v\f]*[+-]?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?[ \t\n\r\v\f]*$/i.test(value);
 }
 
 export function isPlainObject(value) {
