@@ -26,7 +26,7 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-swc": "^0.4.0",
     "@rollup/plugin-terser": "^1.0.0",
-    "mocha": "^11.1.0",
+    "mocha": "^12.0.2",
     "prettier": "^3.2.5",
     "rollup": "^4.6.1",
     "rollup-plugin-prettier": "^4.1.1"
@@ -36,5 +36,8 @@
     "test": "mocha",
     "preversion": "npm run test",
     "version": "npm run build && git add package.json package-lock.json dist"
+  },
+  "allowScripts": {
+    "@swc/core@1.16.2": true
   }
 }
