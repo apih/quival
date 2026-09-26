@@ -1,6 +1,6 @@
 {
   "name": "quival",
-  "version": "0.5.7",
+  "version": "0.6.0",
   "description": "Data validation à la Laravel Validation",
   "author": "Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>",
   "license": "MIT",

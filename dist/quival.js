@@ -1,5 +1,5 @@
 /*!
- * quival v0.5.7 (git+https://github.com/apih/quival.git)
+ * quival v0.6.0 (git+https://github.com/apih/quival.git)
  * (c) 2023 Mohd Hafizuddin M Marzuki <hafizuddin_83@yahoo.com>
  * Released under the MIT License.
  */
@@ -33,6 +33,9 @@ var quival = (function (exports) {
   }
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  function wildcardToRegExp(pattern) {
+    return new RegExp(`^${pattern.split('*').map(escapeRegExp).join('([^.]*)')}$`);
   }
   function getByPath(obj, path, defaultValue) {
     const keys = path.split('.');
@@ -206,8 +209,11 @@ var quival = (function (exports) {
     return value === '' || value === null || typeof value === 'undefined';
   }
   function isNumeric(value) {
-    const number = Number(value);
-    return value !== null && typeof value !== 'boolean' && typeof number === 'number' && !isNaN(number);
+    if (typeof value === 'number') {
+      return !isNaN(value);
+    }
+    // Plain decimal notation only, same as PHP's is_numeric()
+    return typeof value === 'string' && /^[ \t\n\r\v\f]*[+-]?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?[ \t\n\r\v\f]*$/i.test(value);
   }
   function isPlainObject(value) {
     return Object.prototype.toString.call(value) === '[object Object]';
@@ -263,42 +269,78 @@ var quival = (function (exports) {
       return unicodeRegex.test(value);
     }
     compareValues(attribute, value, parameters, callback) {
-      if (isEmpty(value)) {
+      const parameter = parameters[0] ?? '';
+      if (isEmpty(value) || parameter === '') {
         return false;
       }
-      const other = parameters[0] ?? '';
-      let otherValue = this.validator.getValue(other);
-      if (typeof otherValue === 'undefined') {
-        if (isNumeric(other)) {
-          otherValue = parseFloat(other);
-        } else {
-          otherValue = null;
+      let otherValue = this.validator.getValue(parameter);
+      // Laravel's ConvertEmptyStringsToNull middleware turns empty strings into null on the server
+      if (otherValue === '') {
+        otherValue = null;
+      }
+      const useNumericSize = isNumeric(value) || this.validator.hasRule(attribute, this.validator.numericRules);
+      const sizeOf = (subject) => {
+        if (useNumericSize && isNumeric(subject)) {
+          return parseFloat(typeof subject === 'string' ? subject.trim() : subject);
+        } else if (subject instanceof File) {
+          return subject.size / 1024;
+        } else if (Array.isArray(subject)) {
+          return subject.length;
+        } else if (isPlainObject(subject)) {
+          return Object.keys(subject).length;
+        } else if (typeof subject === 'boolean') {
+          return subject ? 1 : 0;
         }
-      } else {
-        otherValue = this.validator.getSize(other, otherValue);
+        return String(subject ?? '').length;
+      };
+      const typeOf = (subject) => {
+        if (subject === null || typeof subject === 'undefined') {
+          return 'null';
+        } else if (subject instanceof File) {
+          return 'file';
+        } else if (Array.isArray(subject) || isPlainObject(subject)) {
+          return 'array';
+        }
+        return typeof subject;
+      };
+      if ((otherValue === null || typeof otherValue === 'undefined') && isNumeric(value) && isNumeric(parameter)) {
+        return callback(sizeOf(value), parseFloat(String(parameter).trim()));
       }
-      if (isEmpty(otherValue)) {
+      if (isNumeric(parameter)) {
         return false;
       }
-      return callback(this.validator.getSize(attribute, value), otherValue);
+      if (useNumericSize && isNumeric(value) && isNumeric(otherValue)) {
+        return callback(sizeOf(value), sizeOf(otherValue));
+      }
+      if (typeOf(value) !== typeOf(otherValue)) {
+        return false;
+      }
+      return callback(sizeOf(value), sizeOf(otherValue));
     }
     compareDates(attribute, value, parameters, callback) {
-      const rules = this.validator.getRule(attribute);
-      const dateFormatRule = Array.isArray(rules) ? rules.find(([name]) => name === 'date_format') : null;
-      const format = dateFormatRule ? dateFormatRule[1][0] : null;
-      value = format ? parseDateByFormat(value, format) : parseDate(value);
+      const getDateFormat = (attribute) => {
+        const rules = this.validator.getRule(attribute);
+        const dateFormatRule = Array.isArray(rules) ? rules.find(([name]) => name === 'date_format') : null;
+        return dateFormatRule ? dateFormatRule[1][0] : null;
+      };
+      const parseWithOptionalFormat = (value, format) => {
+        if (format) {
+          const parsed = parseDateByFormat(value, format);
+          return isValidDate(parsed) ? parsed : parseDate(String(value));
+        }
+        return parseDate(value);
+      };
+      const format = getDateFormat(attribute);
+      value = parseWithOptionalFormat(value, format);
       if (!isValidDate(value)) {
         return false;
       }
       const other = parameters[0] ?? '';
-      let otherValue = this.validator.getValue(other);
-      if (typeof otherValue === 'undefined') {
-        otherValue = format ? parseDateByFormat(other, format) : parseDate(other);
-      } else {
-        const otherRules = this.validator.getRule(other);
-        const otherDateFormatRule = Array.isArray(otherRules) ? otherRules.find(([name]) => name === 'date_format') : null;
-        const otherFormat = otherDateFormatRule ? otherDateFormatRule[1][0] : null;
-        otherValue = otherFormat ? parseDateByFormat(otherValue, otherFormat) : parseDate(otherValue);
+      const otherFormat = getDateFormat(other) ?? format;
+      // Try the parameter as a date before as a field
+      let otherValue = parseWithOptionalFormat(other, format ? otherFormat : null);
+      if (!isValidDate(otherValue)) {
+        otherValue = parseWithOptionalFormat(this.validator.getValue(other), otherFormat);
       }
       if (!isValidDate(otherValue)) {
         return false;
@@ -1064,6 +1106,9 @@ var quival = (function (exports) {
       }
       return;
     }
+    static all() {
+      return this.#messages[this.#locale] ?? {};
+    }
     static has(path) {
       return typeof this.get(path) === 'undefined' ? false : true;
     }
@@ -1332,23 +1377,7 @@ var quival = (function (exports) {
   class Validator {
     static #customCheckers = {};
     static #customReplacers = {};
-    static #dummyRules = [
-      'active_url',
-      'bail',
-      'can',
-      'current_password',
-      'encoding',
-      'enum',
-      'exclude',
-      'exclude_if',
-      'exclude_unless',
-      'exclude_with',
-      'exclude_without',
-      'exists',
-      'nullable',
-      'sometimes',
-      'unique',
-    ];
+    static #dummyRules = ['active_url', 'bail', 'can', 'current_password', 'encoding', 'enum', 'exists', 'nullable', 'sometimes', 'unique'];
     static #implicitRules = [
       'accepted',
       'accepted_if',
@@ -1374,6 +1403,49 @@ var quival = (function (exports) {
       'required_with_all',
       'required_without',
       'required_without_all',
+    ];
+    static #excludeRules = ['exclude', 'exclude_if', 'exclude_unless', 'exclude_with', 'exclude_without'];
+    static #dependentRules = [
+      'accepted_if',
+      'after',
+      'after_or_equal',
+      'before',
+      'before_or_equal',
+      'confirmed',
+      'declined_if',
+      'different',
+      'exclude_if',
+      'exclude_unless',
+      'exclude_with',
+      'exclude_without',
+      'gt',
+      'gte',
+      'lt',
+      'lte',
+      'missing_if',
+      'missing_unless',
+      'missing_with',
+      'missing_with_all',
+      'present_if',
+      'present_unless',
+      'present_with',
+      'present_with_all',
+      'prohibited',
+      'prohibited_if',
+      'prohibited_if_accepted',
+      'prohibited_if_declined',
+      'prohibited_unless',
+      'prohibits',
+      'required_if',
+      'required_if_accepted',
+      'required_if_declined',
+      'required_unless',
+      'required_with',
+      'required_with_all',
+      'required_without',
+      'required_without_all',
+      'same',
+      'unique',
     ];
     #data;
     #initialRules;
@@ -1476,17 +1548,58 @@ var quival = (function (exports) {
     }
     parseRules(rules) {
       const parsedRules = {};
-      for (const [attribute, attributeRules] of Object.entries(rules)) {
-        const attributes = attribute.includes('*') ? this.parseWildcardAttribute(attribute) : [attribute];
+      for (const [primaryAttribute, attributeRules] of Object.entries(rules)) {
+        const attributes = primaryAttribute.includes('*') ? this.parseWildcardAttribute(primaryAttribute) : [primaryAttribute];
         for (const attribute of attributes) {
+          const keys = this.getExplicitKeys(primaryAttribute, attribute);
           const parsedAttributeRules = [];
           for (const attributeRule of this.parseAttributeRules(attributeRules)) {
-            parsedAttributeRules.push(this.parseAttributeRule(attributeRule));
+            let [rule, parameters] = this.parseAttributeRule(attributeRule);
+            if (keys.length > 0 && Validator.#dependentRules.includes(rule)) {
+              parameters = this.replaceAsterisksInParameters(parameters, keys);
+            }
+            parsedAttributeRules.push([rule, parameters]);
           }
           parsedRules[attribute] = parsedAttributeRules;
         }
       }
       return parsedRules;
+    }
+    getExplicitKeys(primaryAttribute, attribute) {
+      if (!primaryAttribute.includes('*')) {
+        return [];
+      }
+      return attribute.match(wildcardToRegExp(primaryAttribute))?.slice(1) ?? [];
+    }
+    replaceAsterisksInParameters(parameters, keys) {
+      return parameters.map((parameter) => {
+        let index = 0;
+        return String(parameter).replace(/\*/g, () => keys[index++] ?? '*');
+      });
+    }
+    getExcludeIndexes() {
+      const excludeIndexes = {};
+      for (const [attribute, rules] of Object.entries(this.#rules)) {
+        const index = rules.findIndex(([rule, parameters]) => this.shouldExclude(rule, parameters));
+        if (index !== -1) {
+          excludeIndexes[attribute] = index;
+        }
+      }
+      return excludeIndexes;
+    }
+    shouldExclude(rule, parameters) {
+      if (rule === 'exclude') {
+        return true;
+      } else if (rule === 'exclude_if') {
+        return this.hasAttribute(parameters[0]) && this.#checkers.isDependent(parameters);
+      } else if (rule === 'exclude_unless') {
+        return !this.#checkers.isDependent(parameters);
+      } else if (rule === 'exclude_with') {
+        return this.hasAttribute(parameters[0]);
+      } else if (rule === 'exclude_without') {
+        return parameters.some((other) => !this.#checkers.checkRequired(other, this.getValue(other)));
+      }
+      return false;
     }
     parseWildcardAttribute(attribute) {
       const attributes = [];
@@ -1553,66 +1666,98 @@ var quival = (function (exports) {
             rule === '' ||
             typeof rule === 'function' ||
             typeof this.#checkers[toCamelCase('check_' + rule)] === 'function' ||
-            Validator.#dummyRules.includes(rule)
+            Validator.#dummyRules.includes(rule) ||
+            Validator.#excludeRules.includes(rule)
           )
             continue;
           throw new Error(`Invalid validation rule: ${rule}`);
         }
       }
+      const excludeIndexes = this.getExcludeIndexes();
+      const excludableAttributes = [];
+      const exclusions = {};
       for (const [attribute, rules] of Object.entries(this.#rules)) {
         let value = this.getValue(attribute);
         const hasRule = (ruleName) => rules.some((rule) => rule[0] === ruleName);
+        const excludeIndex = excludeIndexes[attribute] ?? -1;
+        // Excluded parent attributes also exclude this one
+        const ancestors = excludableAttributes.filter((excludable) => attribute.startsWith(excludable + '.'));
+        if (excludeIndex !== -1) {
+          excludableAttributes.push(attribute);
+        }
         if (hasRule('sometimes') && typeof value === 'undefined') {
+          // Exclude rules still apply to a missing attribute
+          exclusions[attribute] = Promise.resolve(excludeIndex !== -1);
           skippedAttributes.add(attribute);
           continue;
         }
         tasks.push(async () => {
-          const doBail = this.#alwaysBail || hasRule('bail');
-          const isNullable = hasRule('nullable');
-          let noError = true;
-          for (const [rule, parameters] of rules) {
-            if (
-              rule === '' ||
-              (typeof rule !== 'function' &&
-                !Validator.#implicitRules.includes(rule) &&
-                (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
-            ) {
+          const ancestorExclusions = ancestors.map((ancestor) => exclusions[ancestor] ?? false);
+          const validation = (async () => {
+            const doBail = this.#alwaysBail || hasRule('bail');
+            const isNullable = hasRule('nullable');
+            let noError = true;
+            if ((await Promise.all(ancestorExclusions)).some(Boolean)) {
               skippedAttributes.add(attribute);
-              continue;
+              return [noError, true];
             }
-            let result, success, message;
-            const checker = (() => {
-              if (typeof rule === 'function') {
-                return rule;
-              } else {
-                const checker = this.#checkers[toCamelCase('check_' + rule)] ?? null;
-                if (checker === null && Validator.#dummyRules.includes(rule)) {
-                  return () => true;
+            for (const [index, [rule, parameters]] of rules.entries()) {
+              // Rules after a matching exclude rule are skipped
+              if (index === excludeIndex) {
+                skippedAttributes.add(attribute);
+                return [noError, true];
+              }
+              if (Validator.#excludeRules.includes(rule)) {
+                continue;
+              }
+              if (
+                rule === '' ||
+                (typeof rule !== 'function' &&
+                  !Validator.#implicitRules.includes(rule) &&
+                  (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
+              ) {
+                skippedAttributes.add(attribute);
+                continue;
+              }
+              let result, success, message;
+              const checker = (() => {
+                if (typeof rule === 'function') {
+                  return rule;
+                } else {
+                  const checker = this.#checkers[toCamelCase('check_' + rule)] ?? null;
+                  if (checker === null && Validator.#dummyRules.includes(rule)) {
+                    return () => true;
+                  }
+                  return checker;
                 }
-                return checker;
+              })();
+              if (checker === null) {
+                throw new Error(`Invalid validation rule: ${rule}`);
               }
-            })();
-            if (checker === null) {
-              throw new Error(`Invalid validation rule: ${rule}`);
-            }
-            result = await checker.call(this.#checkers, attribute, value, parameters);
-            if (typeof result === 'boolean') {
-              result = {
-                success: result,
-              };
-            }
-            ({ success, message = '' } = result);
-            if (!success) {
-              noError = false;
-              message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
-              message = this.makeReplacements(message, attribute, rule, parameters);
-              this.#errors.add(attribute, message);
-              if (doBail || Validator.#implicitRules.includes(rule)) {
-                break;
+              result = await checker.call(this.#checkers, attribute, value, parameters);
+              if (typeof result === 'boolean') {
+                result = {
+                  success: result,
+                };
+              }
+              ({ success, message = '' } = result);
+              if (!success) {
+                noError = false;
+                message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
+                message = this.makeReplacements(message, attribute, rule, parameters);
+                this.#errors.add(attribute, message);
+                if (doBail || Validator.#implicitRules.includes(rule)) {
+                  break;
+                }
               }
             }
-          }
-          return noError;
+            return [noError, false];
+          })();
+          exclusions[attribute] = validation.then(
+            ([, isExcluded]) => isExcluded,
+            () => false,
+          );
+          return (await validation)[0];
         });
       }
       if (this.#stopOnFirstFailure) {
@@ -1702,16 +1847,25 @@ var quival = (function (exports) {
     getDisplayableAttribute(attribute) {
       const unparsed = this.getPrimaryAttribute(attribute);
       for (const name of [attribute, unparsed]) {
-        if (Object.hasOwn(this.#customAttributes, name)) {
-          return this.#customAttributes[name];
-        } else if (Lang.has(`attributes.${name}`)) {
-          return Lang.get(`attributes.${name}`);
+        const line = this.getAttributeFromLocalArray(name, this.#customAttributes) ?? this.getAttributeFromLocalArray(name, Lang.all(), 'attributes.');
+        if (typeof line !== 'undefined') {
+          return line;
         }
       }
       if (Object.hasOwn(this.#implicitAttributes, attribute)) {
         return attribute;
       }
       return toSnakeCase(attribute).replaceAll('_', ' ');
+    }
+    getAttributeFromLocalArray(attribute, source, prefix = '') {
+      if (Object.hasOwn(source, prefix + attribute)) {
+        return source[prefix + attribute];
+      }
+      for (const [key, line] of Object.entries(source)) {
+        if (key.startsWith(prefix) && key.includes('*') && wildcardToRegExp(key.slice(prefix.length)).test(attribute)) {
+          return line;
+        }
+      }
     }
     getDisplayableValue(attribute, value) {
       attribute = this.getPrimaryAttribute(attribute);
