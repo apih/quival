@@ -29,7 +29,7 @@ There are 2 ways to start using `quival` in your project.
 Get the script from [jsDelivr CDN page](https://www.jsdelivr.com/package/npm/quival) and include it in your HTML page.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/quival@0.5.x/dist/quival.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quival@0.6.x/dist/quival.min.js"></script>
 ```
 
 Extract `Validator` class from  `quival` global variable, and you are good to go.
@@ -198,11 +198,6 @@ The following rules are not implemented and will always pass the validation if u
 - `active_url`
 - `can`
 - `current_password`
-- `exclude`
-- `exclude_if`
-- `exclude_unless`
-- `exclude_with`
-- `exclude_without`
 - `exists`
 - `unique`
 
