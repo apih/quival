@@ -8,23 +8,7 @@ export default class Validator {
   static #customCheckers = {};
   static #customReplacers = {};
 
-  static #dummyRules = [
-    'active_url',
-    'bail',
-    'can',
-    'current_password',
-    'encoding',
-    'enum',
-    'exclude',
-    'exclude_if',
-    'exclude_unless',
-    'exclude_with',
-    'exclude_without',
-    'exists',
-    'nullable',
-    'sometimes',
-    'unique',
-  ];
+  static #dummyRules = ['active_url', 'bail', 'can', 'current_password', 'encoding', 'enum', 'exists', 'nullable', 'sometimes', 'unique'];
 
   static #implicitRules = [
     'accepted',
@@ -52,6 +36,8 @@ export default class Validator {
     'required_without',
     'required_without_all',
   ];
+
+  static #excludeRules = ['exclude', 'exclude_if', 'exclude_unless', 'exclude_with', 'exclude_without'];
 
   static #dependentRules = [
     'accepted_if',
@@ -268,6 +254,36 @@ export default class Validator {
     });
   }
 
+  getExcludeIndexes() {
+    const excludeIndexes = {};
+
+    for (const [attribute, rules] of Object.entries(this.#rules)) {
+      const index = rules.findIndex(([rule, parameters]) => this.shouldExclude(rule, parameters));
+
+      if (index !== -1) {
+        excludeIndexes[attribute] = index;
+      }
+    }
+
+    return excludeIndexes;
+  }
+
+  shouldExclude(rule, parameters) {
+    if (rule === 'exclude') {
+      return true;
+    } else if (rule === 'exclude_if') {
+      return this.hasAttribute(parameters[0]) && this.#checkers.isDependent(parameters);
+    } else if (rule === 'exclude_unless') {
+      return !this.#checkers.isDependent(parameters);
+    } else if (rule === 'exclude_with') {
+      return this.hasAttribute(parameters[0]);
+    } else if (rule === 'exclude_without') {
+      return parameters.some((other) => !this.#checkers.checkRequired(other, this.getValue(other)));
+    }
+
+    return false;
+  }
+
   parseWildcardAttribute(attribute) {
     const attributes = [];
     const index = attribute.indexOf('*');
@@ -347,7 +363,8 @@ export default class Validator {
           rule === '' ||
           typeof rule === 'function' ||
           typeof this.#checkers[toCamelCase('check_' + rule)] === 'function' ||
-          Validator.#dummyRules.includes(rule)
+          Validator.#dummyRules.includes(rule) ||
+          Validator.#excludeRules.includes(rule)
         )
           continue;
 
@@ -355,73 +372,112 @@ export default class Validator {
       }
     }
 
+    const excludeIndexes = this.getExcludeIndexes();
+    const excludableAttributes = [];
+    const exclusions = {};
+
     for (const [attribute, rules] of Object.entries(this.#rules)) {
       let value = this.getValue(attribute);
       const hasRule = (ruleName) => rules.some((rule) => rule[0] === ruleName);
+      const excludeIndex = excludeIndexes[attribute] ?? -1;
+      // Excluded parent attributes also exclude this one
+      const ancestors = excludableAttributes.filter((excludable) => attribute.startsWith(excludable + '.'));
+
+      if (excludeIndex !== -1) {
+        excludableAttributes.push(attribute);
+      }
 
       if (hasRule('sometimes') && typeof value === 'undefined') {
+        // Exclude rules still apply to a missing attribute
+        exclusions[attribute] = Promise.resolve(excludeIndex !== -1);
         skippedAttributes.add(attribute);
         continue;
       }
 
       tasks.push(async () => {
-        const doBail = this.#alwaysBail || hasRule('bail');
-        const isNullable = hasRule('nullable');
-        let noError = true;
+        const ancestorExclusions = ancestors.map((ancestor) => exclusions[ancestor] ?? false);
 
-        for (const [rule, parameters] of rules) {
-          if (
-            rule === '' ||
-            (typeof rule !== 'function' &&
-              !Validator.#implicitRules.includes(rule) &&
-              (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
-          ) {
+        const validation = (async () => {
+          const doBail = this.#alwaysBail || hasRule('bail');
+          const isNullable = hasRule('nullable');
+          let noError = true;
+
+          if ((await Promise.all(ancestorExclusions)).some(Boolean)) {
             skippedAttributes.add(attribute);
-            continue;
+            return [noError, true];
           }
 
-          let result, success, message;
+          for (const [index, [rule, parameters]] of rules.entries()) {
+            // Rules after a matching exclude rule are skipped
+            if (index === excludeIndex) {
+              skippedAttributes.add(attribute);
+              return [noError, true];
+            }
 
-          const checker = (() => {
-            if (typeof rule === 'function') {
-              return rule;
-            } else {
-              const checker = this.#checkers[toCamelCase('check_' + rule)] ?? null;
+            if (Validator.#excludeRules.includes(rule)) {
+              continue;
+            }
 
-              if (checker === null && Validator.#dummyRules.includes(rule)) {
-                return () => true;
+            if (
+              rule === '' ||
+              (typeof rule !== 'function' &&
+                !Validator.#implicitRules.includes(rule) &&
+                (typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '') || (isNullable && value === null)))
+            ) {
+              skippedAttributes.add(attribute);
+              continue;
+            }
+
+            let result, success, message;
+
+            const checker = (() => {
+              if (typeof rule === 'function') {
+                return rule;
+              } else {
+                const checker = this.#checkers[toCamelCase('check_' + rule)] ?? null;
+
+                if (checker === null && Validator.#dummyRules.includes(rule)) {
+                  return () => true;
+                }
+
+                return checker;
               }
+            })();
 
-              return checker;
+            if (checker === null) {
+              throw new Error(`Invalid validation rule: ${rule}`);
             }
-          })();
 
-          if (checker === null) {
-            throw new Error(`Invalid validation rule: ${rule}`);
-          }
+            result = await checker.call(this.#checkers, attribute, value, parameters);
 
-          result = await checker.call(this.#checkers, attribute, value, parameters);
+            if (typeof result === 'boolean') {
+              result = { success: result };
+            }
 
-          if (typeof result === 'boolean') {
-            result = { success: result };
-          }
+            ({ success, message = '' } = result);
 
-          ({ success, message = '' } = result);
+            if (!success) {
+              noError = false;
+              message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
+              message = this.makeReplacements(message, attribute, rule, parameters);
 
-          if (!success) {
-            noError = false;
-            message = isEmpty(message) ? this.getMessage(attribute, rule) : message;
-            message = this.makeReplacements(message, attribute, rule, parameters);
+              this.#errors.add(attribute, message);
 
-            this.#errors.add(attribute, message);
-
-            if (doBail || Validator.#implicitRules.includes(rule)) {
-              break;
+              if (doBail || Validator.#implicitRules.includes(rule)) {
+                break;
+              }
             }
           }
-        }
 
-        return noError;
+          return [noError, false];
+        })();
+
+        exclusions[attribute] = validation.then(
+          ([, isExcluded]) => isExcluded,
+          () => false,
+        );
+
+        return (await validation)[0];
       });
     }
 

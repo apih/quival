@@ -3599,4 +3599,105 @@ describe('Validation', () => {
       assert(await validator.passes());
     });
   });
+
+  describe(`Exclude rules`, () => {
+    const excluded = async (data, rules) => {
+      const validator = new Validator(data, rules);
+
+      return validator.passes();
+    };
+
+    it(`Rule 'exclude' always excludes`, async () => {
+      assert(await excluded({ f: '' }, { f: ['exclude', 'required'] }));
+    });
+
+    it(`Rule 'exclude_if'`, async () => {
+      const rules = { f: ['exclude_if:type,a', 'required'] };
+
+      assert(await excluded({ type: 'a', f: '' }, rules));
+      assert(!(await excluded({ type: 'b', f: '' }, rules)));
+      assert(!(await excluded({ f: '' }, rules)));
+    });
+
+    it(`Rule 'exclude_unless'`, async () => {
+      const rules = { f: ['exclude_unless:type,a', 'required'] };
+
+      assert(!(await excluded({ type: 'a', f: '' }, rules)));
+      assert(await excluded({ type: 'b', f: '' }, rules));
+      assert(await excluded({ f: '' }, rules));
+    });
+
+    it(`Rule 'exclude_with'`, async () => {
+      const rules = { f: ['exclude_with:other', 'required'] };
+
+      assert(await excluded({ other: 'x', f: '' }, rules));
+      assert(!(await excluded({ f: '' }, rules)));
+    });
+
+    it(`Rule 'exclude_without'`, async () => {
+      const rules = { f: ['exclude_without:other', 'required'] };
+
+      assert(await excluded({ other: '', f: '' }, rules));
+      assert(!(await excluded({ other: 'x', f: '' }, rules)));
+    });
+
+    it(`Runs rules placed before the exclude rule`, async () => {
+      assert(!(await excluded({ type: 'a', f: 'abc' }, { f: ['numeric', 'exclude_if:type,a', 'required'] })));
+    });
+
+    it(`Excludes children of an excluded attribute`, async () => {
+      const validator = new Validator({ mode: 'none', items: [{ name: '' }] }, { items: ['exclude_if:mode,none', 'array'], 'items.*.name': ['required'] });
+
+      assert(await validator.passes());
+      assert(validator.skippedAttributes().includes('items.0.name'));
+    });
+
+    it(`Does not exclude children when the parent stops before its exclude rule`, async () => {
+      let validator = new Validator({ bar: 1, foo: { x: '' } }, { foo: 'bail|integer|exclude_if:bar,1', 'foo.x': 'required' });
+      assert(await validator.fails());
+      assert(validator.errors().has('foo.x'));
+
+      validator = new Validator({ bar: 1 }, { foo: 'required|exclude_if:bar,1', 'foo.x': 'required' });
+      assert(await validator.fails());
+      assert(validator.errors().has('foo.x'));
+
+      validator = new Validator({ bar: 1, foo: { x: '' } }, { foo: 'integer|exclude_if:bar,1', 'foo.x': 'required' });
+      assert(await validator.fails());
+      assert(validator.errors().has('foo'));
+      assert(!validator.errors().has('foo.x'));
+    });
+
+    it(`Excludes children of a missing parent with rule sometimes`, async () => {
+      assert(await excluded({ bar: 1 }, { foo: 'sometimes|exclude_if:bar,1', 'foo.x': 'required' }));
+    });
+
+    it(`Excludes nested children of an excluded attribute`, async () => {
+      assert(await excluded({ bar: 1, a: { b: { c: '' } } }, { a: 'exclude_if:bar,1', 'a.b': 'array', 'a.b.c': 'required' }));
+    });
+
+    it(`Does not exclude children defined before the parent`, async () => {
+      assert(!(await excluded({ foo: { x: '' } }, { 'foo.x': 'required', foo: 'exclude' })));
+    });
+
+    it(`Excludes children with stop on first failure`, async () => {
+      const validator = new Validator({ bar: 1, foo: { x: '' } }, { foo: 'exclude_if:bar,1', 'foo.x': 'required' }).stopOnFirstFailure();
+      assert(await validator.passes());
+    });
+
+    it(`Resolves '*' in exclude rule parameters`, async () => {
+      const validator = new Validator(
+        {
+          items: [
+            { type: 'paid', price: '' },
+            { type: 'free', price: '' },
+          ],
+        },
+        { 'items.*.price': ['exclude_unless:items.*.type,paid', 'required'] },
+      );
+
+      assert(await validator.fails());
+      assert(validator.errors().has('items.0.price'));
+      assert(!validator.errors().has('items.1.price'));
+    });
+  });
 });
