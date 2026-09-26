@@ -592,14 +592,9 @@ export default class Validator {
 
   getDisplayableAttribute(attribute) {
     const unparsed = this.getPrimaryAttribute(attribute);
-    const translations = Object.fromEntries(
-      Object.entries(Lang.all())
-        .filter(([key]) => key.startsWith('attributes.'))
-        .map(([key, line]) => [key.slice('attributes.'.length), line]),
-    );
 
     for (const name of [attribute, unparsed]) {
-      const line = this.getAttributeFromLocalArray(name, this.#customAttributes) ?? this.getAttributeFromLocalArray(name, translations);
+      const line = this.getAttributeFromLocalArray(name, this.#customAttributes) ?? this.getAttributeFromLocalArray(name, Lang.all(), 'attributes.');
 
       if (typeof line !== 'undefined') {
         return line;
@@ -613,13 +608,13 @@ export default class Validator {
     return toSnakeCase(attribute).replaceAll('_', ' ');
   }
 
-  getAttributeFromLocalArray(attribute, source) {
-    if (Object.hasOwn(source, attribute)) {
-      return source[attribute];
+  getAttributeFromLocalArray(attribute, source, prefix = '') {
+    if (Object.hasOwn(source, prefix + attribute)) {
+      return source[prefix + attribute];
     }
 
     for (const [key, line] of Object.entries(source)) {
-      if (key.includes('*') && wildcardToRegExp(key).test(attribute)) {
+      if (key.startsWith(prefix) && key.includes('*') && wildcardToRegExp(key.slice(prefix.length)).test(attribute)) {
         return line;
       }
     }
