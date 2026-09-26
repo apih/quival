@@ -199,6 +199,25 @@ describe('Validation', () => {
       validator.setData({ field: '05/30/2022' });
       assert(await validator.fails());
     });
+
+    it(`Falls back to default date parsing when date_format does not match`, async () => {
+      const messages = { date_format: 'date_format', after: 'after' };
+      let validator = new Validator({ field: '15/01/2026' }, { field: 'date_format:d/m/Y|after:2026-01-01' }, messages);
+      assert(await validator.passes());
+
+      validator.setData({ field: '15/01/2025' });
+      assert(await validator.fails());
+      assert.deepEqual(validator.errors().get('field'), ['after']);
+
+      validator = new Validator({ field: '2026-01-15' }, { field: 'date_format:d/m/Y|after:01/01/2026' }, messages);
+      assert(await validator.fails());
+      assert.deepEqual(validator.errors().get('field'), ['date_format']);
+    });
+
+    it(`Parses the other field's value with the field's date_format when it has none`, async () => {
+      const validator = new Validator({ date: '02/01/2026', field: '01/15/2026' }, { field: 'date_format:m/d/Y|after:date' });
+      assert(await validator.fails());
+    });
   });
 
   describe(`Rule 'after_or_equal'`, () => {

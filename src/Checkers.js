@@ -99,27 +99,39 @@ export default class Checkers {
   }
 
   compareDates(attribute, value, parameters, callback) {
-    const rules = this.validator.getRule(attribute);
-    const dateFormatRule = Array.isArray(rules) ? rules.find(([name]) => name === 'date_format') : null;
-    const format = dateFormatRule ? dateFormatRule[1][0] : null;
+    const getDateFormat = (attribute) => {
+      const rules = this.validator.getRule(attribute);
+      const dateFormatRule = Array.isArray(rules) ? rules.find(([name]) => name === 'date_format') : null;
 
-    value = format ? parseDateByFormat(value, format) : parseDate(value);
+      return dateFormatRule ? dateFormatRule[1][0] : null;
+    };
+
+    const parseWithOptionalFormat = (value, format) => {
+      if (format) {
+        const parsed = parseDateByFormat(value, format);
+
+        return isValidDate(parsed) ? parsed : parseDate(String(value));
+      }
+
+      return parseDate(value);
+    };
+
+    const format = getDateFormat(attribute);
+
+    value = parseWithOptionalFormat(value, format);
 
     if (!isValidDate(value)) {
       return false;
     }
 
     const other = parameters[0] ?? '';
-    let otherValue = this.validator.getValue(other);
+    const otherFormat = getDateFormat(other) ?? format;
 
-    if (typeof otherValue === 'undefined') {
-      otherValue = format ? parseDateByFormat(other, format) : parseDate(other);
-    } else {
-      const otherRules = this.validator.getRule(other);
-      const otherDateFormatRule = Array.isArray(otherRules) ? otherRules.find(([name]) => name === 'date_format') : null;
-      const otherFormat = otherDateFormatRule ? otherDateFormatRule[1][0] : null;
+    // Try the parameter as a date before as a field
+    let otherValue = parseWithOptionalFormat(other, format ? otherFormat : null);
 
-      otherValue = otherFormat ? parseDateByFormat(otherValue, otherFormat) : parseDate(otherValue);
+    if (!isValidDate(otherValue)) {
+      otherValue = parseWithOptionalFormat(this.validator.getValue(other), otherFormat);
     }
 
     if (!isValidDate(otherValue)) {
